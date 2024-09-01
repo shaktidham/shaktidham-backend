@@ -12,15 +12,12 @@ async function allocateSeats(req, res) {
     // console.log("translate",translate)
 
     // Translate the name to Gujarati
-    const translationResponse1 = await translate(name, { to: "gu" });
-    const gujaratiName1 = translationResponse1.text;
-    const translationResponse2 = await translate(vilage, { to: "gu" });
-    const gujaratiName2 = translationResponse2.text;
+    
 
     // Create a seat with translated name
     const currentSeat = await SeatModel.create({
-      name: gujaratiName1,
-      vilage: gujaratiName2,
+      name: name,
+      vilage: vilage,
       mobile: mobile,
       date: date,
       seatNumber: seatNumber,
