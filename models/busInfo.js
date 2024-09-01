@@ -8,6 +8,8 @@ const seatSchema = new mongoose.Schema(
     route: { type: mongoose.Schema.Types.ObjectId, ref: "Routeinfo" },
     date: { type: Date },
     driver: { type: String },
+    kabinprice:{typr:Number},
+    bustime: { type: String },
   },
   {
     timestamps: true,

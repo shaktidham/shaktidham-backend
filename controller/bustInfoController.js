@@ -3,7 +3,8 @@ const routeInfo = require("../models/routeinfo");
 
 async function busDetails(req, res) {
   try {
-    const { date, location, busNumber, price, driver } = req.body;
+    const { date, location, busNumber, price, driver,bustime,kabinprice } = req.body;
+
     const exsitRoute = await routeInfo.findById(req.params.id);
     if (!exsitRoute) {
       res.status(404).json(`Route not found`);
@@ -14,6 +15,8 @@ async function busDetails(req, res) {
       location,
       busNumber,
       price,
+      bustime,
+      kabinprice,
       route: exsitRoute._id,
       driver,
     });
@@ -24,18 +27,20 @@ async function busDetails(req, res) {
 }
 async function busDetailsupdate(req, res) {
   try {
-    const { date, location, busNumber, price, driver } = req.body;
+    const { date, location, busNumber, price, driver,route,kabinprice,bustime } = req.body;
     const exsitRoute = await routeInfo.findById(req.params.id);
-    if (!exsitRoute) {
-      res.status(404).json(`Route not found`);
-    }
+    // if (!exsitRoute) {
+    //   res.status(404).json(`Route not found`);
+    // }
 
     const busdetails = await Businfo.findByIdAndUpdate(req.params.id, {
       date,
       location,
       busNumber,
+      kabinprice,
       price,
-      route: exsitRoute._id,
+      route,
+      bustime,
       driver,
     });
     res.status(200).json({ data: busdetails });

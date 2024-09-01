@@ -1,6 +1,6 @@
 const express = require('express');
 const { allocateSeats,allseats,updateseat,deleteseat } = require('../controller/seatController');
-const { getsearchAll } = require('../controller/searchController');
+const { getsearchAll, getsearchAllByseat } = require('../controller/searchController');
 // const {  } = require('../controllers/');
 
 
@@ -11,6 +11,7 @@ router.get('/read', allseats);
 router.put('/update/:id', updateseat);
 router.delete('/delete/:id', deleteseat);
 router.get('/search', getsearchAll);
+router.get("/searchbyallseat", getsearchAllByseat);
 
 
 module.exports = router;
