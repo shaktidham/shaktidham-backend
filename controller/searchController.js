@@ -147,7 +147,7 @@ async function getsearchBus(req, res) {
 }
 async function getsearchAllByseat(req, res) {
   try {
-    const { Date: dateStr,route } = req.query;
+    const { Date: dateStr, route } = req.query;
     const filter = {};
     const ExsitingRoute = await Routeinfo.findOne({ route });
 
@@ -166,32 +166,58 @@ async function getsearchAllByseat(req, res) {
           .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
       }
     }
-  
 
-    const villageOrder = [
+
+    const villageOrder =  [
       "અરજણસુખ",
-      "અરજણ સુખ",
       "ખાખરીયા",
-      "ખાખરિયા",
-      "સૂર્ય પ્રતાપગઢ",
       "સૂર્યપ્રતાપગઢ",
-      "અનિડા",
       "અનીડા",
       "ઉજળા",
-      "મોટા ઉજળા",
       "મોટાઉજળા",
-      "તાલાળી",
+      "મોટીકુકાવાવ",
+      "નાનીકુકાવાવ",
+      "જંગર",
+      "કોલડા",
+      "લુણીધાર",
+      "જીથુડી",
+      "રાંઢીયા",
+      "ચિતલ",
+      "ભીલડી",
+      "ભીલા",
+      "ઇંગોરાળા",
+      "ઇંગોરાળાપાટીયુ",
+      "લુણકી",  
       "તાલાળિ",
-      "સનાળી",
       "સનાળિ",
       "રાણસીકી",
       "દેરડી",
-      "મોટી ખીલોરી",
+      "પાટખીલોરી",
+      "રાવણા",
+      "વાસાવડ",
+      "દડવા",
+      "ઝુંડાળા",
+      "રાણપર",
+      "ફુલજર",
+      "ખીજડીયા",
+      "દેવળીયા",
+      "ધરાઇ",
+      "વાવડી",
+      "ત્રંબોડા",
+      "ગમાપીપળીયા",
+      "ચમારડી",
+      "બાબરા",
+      "ચરખા",
+      "ઉટવડ",
+      "નડાળા",
+      "થોરખાણ",
+      "ગરણી",
+      "પાનસડા",
+      "કર્ણુકી",
+     "કોટડાપીઠા",
+      "જંગવડ",
       "મોટીખીલોરી",
-      "ખીલોરી",
-      "ખિલોરી",
       "મેતાખંભાળિયા",
-      "મેતા ખંભાળિયા",
       "કેશવાળાપાટીયુ",
       "કમઢીયા",
       "બિલડી",
@@ -199,24 +225,25 @@ async function getsearchAllByseat(req, res) {
       "સાણથલી",
       "નવાગામ",
       "જુનાપીપળીયા",
-      "જુના પીપળીયા",
       "પીપળીયા",
       "જીવાપર",
       "પાંચવડા",
       "પાંચવડાચોકડી",
       "પાચવડા",
       "આટકોટ",
+      "વાવડા",
+      "ગોખલાણા",
+      "શિવરાજગઢ",
       "જસદણ",
-      "સૂર્યા પંપ",
-      "સૂર્યાપંપ",
-      "સૂર્ય પંપ",
-      "સૂર્યપંપ",
-      "સુર્યાપંપ",
+  ,   "સૂર્યાપંપ",
       "લીલાપુર",
       "લાલાવદર",
       "વિછીયા",
-      "રાણપુર",
-    ];
+      "પાળીયાદ",
+      "રાણપુર"
+  ]
+  
+    ;
 
     const villageSortOrder = villageOrder.reduce((acc, village, index) => {
       acc[village] = index;
@@ -396,4 +423,4 @@ async function getsearchAllByseat(req, res) {
   }
 }
 
-module.exports = { getsearchAll, getsearchBus,getsearchAllByseat };
+module.exports = { getsearchAll, getsearchBus, getsearchAllByseat };
