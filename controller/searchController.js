@@ -167,8 +167,7 @@ async function getsearchAllByseat(req, res) {
       }
     }
 
-
-    const villageOrder =  [
+    const villageOrder = [
       "અરજણસુખ",
       "ખાખરીયા",
       "સૂર્યપ્રતાપગઢ",
@@ -187,7 +186,7 @@ async function getsearchAllByseat(req, res) {
       "ભીલા",
       "ઇંગોરાળા",
       "ઇંગોરાળાપાટીયુ",
-      "લુણકી",  
+      "લુણકી",
       "તાલાળિ",
       "સનાળિ",
       "રાણસીકી",
@@ -214,7 +213,7 @@ async function getsearchAllByseat(req, res) {
       "ગરણી",
       "પાનસડા",
       "કર્ણુકી",
-     "કોટડાપીઠા",
+      "કોટડાપીઠા",
       "જંગવડ",
       "મોટીખીલોરી",
       "મેતાખંભાળિયા",
@@ -235,15 +234,14 @@ async function getsearchAllByseat(req, res) {
       "ગોખલાણા",
       "શિવરાજગઢ",
       "જસદણ",
-  ,   "સૂર્યાપંપ",
+      ,
+      "સૂર્યાપંપ",
       "લીલાપુર",
       "લાલાવદર",
       "વિછીયા",
       "પાળીયાદ",
-      "રાણપુર"
-  ]
-  
-    ;
+      "રાણપુર",
+    ];
 
     const villageSortOrder = villageOrder.reduce((acc, village, index) => {
       acc[village] = index;
@@ -422,5 +420,106 @@ async function getsearchAllByseat(req, res) {
     return res.status(500).json({ error: error.message });
   }
 }
+// async function getsearchRouteByvillage(req, res) {
+//   try {
+//     const { Date: dateStr, village } = req.query;
 
-module.exports = { getsearchAll, getsearchBus, getsearchAllByseat };
+//     // Initialize an empty filter object
+//     const filter = {};
+
+//     // Add date range filter if the date is provided
+//     if (dateStr) {
+//       // Parse the date string into a Date object
+//       const dateValue = new Date(dateStr);
+
+//       // Check if the date conversion is valid
+//       if (!isNaN(dateValue.getTime())) {
+//         // Define the start and end of the day
+//         const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0));
+//         const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
+
+//         // Create a filter to match documents where the date is within the specified date range
+//         filter.date = {
+//           $gte: startOfDay,
+//           $lte: endOfDay,
+//         };
+//       } else {
+//         return res
+//           .status(400)
+//           .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+//       }
+//     }
+
+//     // Add village filter if the village is provided
+//     if (village) {
+//       // Assume `village` can be a single value or an array
+//       if (Array.isArray(village)) {
+//         filter.village = { $in: village };
+//       } else {
+//         filter.village = village;
+//       }
+//     }
+
+//     // Query the database with the constructed filter
+//     const results = await Routeinfo.find(filter);
+
+//     // Respond with the results
+//     res.status(200).json(results);
+//   } catch (error) {
+//     res.status(500).json({ error: `Error: ${error.message}` });
+//   }
+// }
+async function getsearchRouteByvillage(req, res) {
+  try {
+    const { Date: dateStr, village } = req.query;
+
+    // Initialize an empty filter object
+    const filter = {};
+    // const ExsitingRoute = await Routeinfo.findOne({ route });
+
+    // Add date range filter if the date is provided
+    if (dateStr) {
+      // Parse the date string into a Date object
+      const dateValue = new Date(dateStr);
+
+      // Check if the date conversion is valid
+      if (!isNaN(dateValue.getTime())) {
+        // Define the start and end of the day
+        const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
+
+        // Create a filter to match documents where the date is within the specified date range
+        filter.date = {
+          $gte: startOfDay,
+          $lte: endOfDay,
+        };
+      } else {
+        return res
+          .status(400)
+          .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+      }
+    }
+
+    if (village) {
+      // Assume `village` can be a single value or an array
+      if (Array.isArray(village)) {
+        filter.village = { $in: village };
+      } else {
+        filter.village = village;
+      }
+    }
+    console.log("first,", filter);
+    const results = await Routeinfo.find(filter);
+
+    // Respond with the results
+    res.status(200).json(results);
+  } catch (error) {
+    res.status(500).json(` erorr ${error}`);
+  }
+}
+module.exports = {
+  getsearchAll,
+  getsearchBus,
+  getsearchAllByseat,
+  getsearchRouteByvillage,
+};
