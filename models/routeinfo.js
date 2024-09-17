@@ -5,8 +5,10 @@ const RouteinfoSchema = new mongoose.Schema(
     route: { type: String },
     // bookingInfo: [ {type: mongoose.Schema.Types.ObjectId, ref: "BookedSeat" }],
     busInfo: { type: String },
+    price: { type: Number },
     date: { type: Date },
-    village: [{ type: String }],
+    from: [{ type: String }],
+    to: [{ type: String }],
   },
   {
     timestamps: true,

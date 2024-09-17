@@ -471,11 +471,10 @@ async function getsearchAllByseat(req, res) {
 // }
 async function getsearchRouteByvillage(req, res) {
   try {
-    const { Date: dateStr, village } = req.query;
+    const { Date: dateStr, from, to } = req.query;
 
     // Initialize an empty filter object
     const filter = {};
-    // const ExsitingRoute = await Routeinfo.findOne({ route });
 
     // Add date range filter if the date is provided
     if (dateStr) {
@@ -500,23 +499,37 @@ async function getsearchRouteByvillage(req, res) {
       }
     }
 
-    if (village) {
-      // Assume `village` can be a single value or an array
-      if (Array.isArray(village)) {
-        filter.village = { $in: village };
+    // Add 'from' filter if provided
+    if (from) {
+      // Assume `from` can be a single value or an array
+      if (Array.isArray(from)) {
+        filter.from = { $in: from };
       } else {
-        filter.village = village;
+        filter.from = from;
       }
     }
-    console.log("first,", filter);
+
+    // Add 'to' filter if provided
+    if (to) {
+      // Assume `to` can be a single value or an array
+      if (Array.isArray(to)) {
+        filter.to = { $in: to };
+      } else {
+        filter.to = to;
+      }
+    }
+
+    // Find documents matching the filter
     const results = await Routeinfo.find(filter);
 
     // Respond with the results
     res.status(200).json(results);
   } catch (error) {
-    res.status(500).json(` erorr ${error}`);
+    // Handle errors
+    res.status(500).json({ error: `Error: ${error.message}` });
   }
 }
+
 module.exports = {
   getsearchAll,
   getsearchBus,
