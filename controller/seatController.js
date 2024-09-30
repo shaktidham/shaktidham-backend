@@ -4,7 +4,7 @@ const { translate } = require("@vitalets/google-translate-api");
 
 async function allocateSeats(req, res) {
   try {
-    const { seatNumbers, name, vilage, mobile, date } = req.body; // Notice the change here
+    const { seatNumbers, name, from,to,pickup,drop,gender,age, mobile, date } = req.body; // Notice the change here
     const existingRoute = await routeInfo.findById(req.params.id);
     
     if (!existingRoute) {
@@ -19,7 +19,12 @@ async function allocateSeats(req, res) {
       // Create a seat for each seat number
       const currentSeat = await SeatModel.create({
         name: name,
-        vilage: vilage,
+        from:from,
+        to:to,
+        pickup:pickup,
+        drop:drop,
+        age:age,
+        gender:gender,
         mobile: mobile,
         date: date,
         seatNumber: seatNumber.trim(), // Trim any extra whitespace

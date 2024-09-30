@@ -9,9 +9,10 @@ const bookedseatSchema=new mongoose.Schema({
     date:{type:Date,default:Date.now()},
     from:{type:String},
     to:{type:String},
-    pickuppoint:{type:String},
-    droppingpoiny:{type:String},
+    pickup:{type:String},
+    drop:{type:String},
     gender:{type:String},
+    age:{type:String},
 
     // seatId:{type:mongoose.Schema.Types.ObjectId, ref: "SeatSchema"}
 },
