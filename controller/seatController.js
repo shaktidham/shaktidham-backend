@@ -4,31 +4,36 @@ const { translate } = require("@vitalets/google-translate-api");
 
 async function allocateSeats(req, res) {
   try {
-    const { seatNumber, name, vilage, mobile, date } = req.body;
-    const exsitRoute=await routeInfo.findById(req.params.id)
-    if(!exsitRoute){
-      res.status(404).json(`Route not found`);
-    }
-    // console.log("translate",translate)
-
-    // Translate the name to Gujarati
+    const { seatNumbers, name, vilage, mobile, date } = req.body; // Notice the change here
+    const existingRoute = await routeInfo.findById(req.params.id);
     
+    if (!existingRoute) {
+      return res.status(404).json({ message: 'Route not found' });
+    }
 
-    // Create a seat with translated name
-    const currentSeat = await SeatModel.create({
-      name: name,
-      vilage: vilage,
-      mobile: mobile,
-      date: date,
-      seatNumber: seatNumber,
-      route:exsitRoute._id
-    });
+    // If seatNumbers is a string, split it into an array (assuming format "A,B,1,2")
+    const seatArray = Array.isArray(seatNumbers) ? seatNumbers : seatNumbers.split(',');
 
-    res.status(201).json({ data: currentSeat });
+    const allocatedSeats = [];
+    for (const seatNumber of seatArray) {
+      // Create a seat for each seat number
+      const currentSeat = await SeatModel.create({
+        name: name,
+        vilage: vilage,
+        mobile: mobile,
+        date: date,
+        seatNumber: seatNumber.trim(), // Trim any extra whitespace
+        route: existingRoute._id
+      });
+      allocatedSeats.push(currentSeat);
+    }
+
+    res.status(201).json({ data: allocatedSeats });
   } catch (error) {
-    res.status(500).json(`Error while allocating seat: ${error}`);
+    res.status(500).json({ message: `Error while allocating seats: ${error.message}` });
   }
 }
+
 async function allseats(req, res) {
   try {
     const currentSeat = await SeatModel.find({});

@@ -6,7 +6,13 @@ const bookedseatSchema=new mongoose.Schema({
     mobile:{type:Number},
     seatNumber:{type:String},
     route: {type: mongoose.Schema.Types.ObjectId, ref: "Routeinfo" },
-    date:{type:Date,default:Date.now()}
+    date:{type:Date,default:Date.now()},
+    from:{type:String},
+    to:{type:String},
+    pickuppoint:{type:String},
+    droppingpoiny:{type:String},
+    gender:{type:String},
+
     // seatId:{type:mongoose.Schema.Types.ObjectId, ref: "SeatSchema"}
 },
 {
