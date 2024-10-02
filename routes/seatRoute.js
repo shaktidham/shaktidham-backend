@@ -16,6 +16,7 @@ const router = express.Router();
 
 router.post("/create/:id", allocateSeats);
 router.get("/read", allseats);
+
 router.put("/update/:id", updateseat);
 router.delete("/delete/:id", deleteseat);
 router.get("/search", getsearchAll);

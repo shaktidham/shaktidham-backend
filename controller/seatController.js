@@ -40,6 +40,7 @@ async function allocateSeats(req, res) {
 }
 
 async function allseats(req, res) {
+
   try {
     const currentSeat = await SeatModel.find({});
     res.status(201).json({ data: currentSeat });
@@ -56,6 +57,7 @@ async function deleteseat(req, res) {
   }
 }
 async function updateseat(req, res) {
+
   try {
     const { name, vilage, mobile } = req.body;
 
@@ -69,4 +71,5 @@ async function updateseat(req, res) {
     res.status(500).json(`error while allocating seat ${error}`);
   }
 }
+
 module.exports = { allocateSeats, allseats, updateseat, deleteseat };
