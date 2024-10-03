@@ -1,3 +1,4 @@
+const bookedseat = require("../models/bookedseat");
 const SeatModel = require("../models/bookedseat");
 const Businfo = require("../models/busInfo");
 const Routeinfo = require("../models/routeinfo");
@@ -481,10 +482,89 @@ async function getsearchRouteByvillage(req, res) {
     res.status(500).json({ error: `Error: ${error.message}` });
   }
 }
+const ticketsearch = async (req, res) => {
+  const { date, mobile } = req.body;
+
+  try {
+    // Validate input
+    if (!date || !mobile) {
+      return res
+        .status(400)
+        .json({ message: "Date and mobile number are required." });
+    }
+
+    // Check if the date is in the format YYYY/MM/DD
+    const dateRegex = /^\d{4}\/\d{2}\/\d{2}$/; // YYYY/MM/DD format
+    if (!dateRegex.test(date)) {
+      return res
+        .status(400)
+        .json({ message: "Date must be in the format YYYY/MM/DD." });
+    }
+
+    // Parse the date string into a Date object
+    const dateValue = new Date(date);
+
+    // Check if the date conversion is valid
+    if (isNaN(dateValue.getTime())) {
+      return res.status(400).json({ error: "Invalid date format." });
+    }
+
+    // Define the start and end of the day
+    const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
+
+    // Create a filter for the query
+    const filter = {
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
+      mobile: mobile,
+    };
+
+    // Query the database
+    const results = await bookedseat.find(filter);
+
+    // Check if results are found
+    if (results.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No data found for the provided date and mobile." });
+    }
+
+    // Aggregate results by name (case insensitive) and mobile
+    const aggregatedResults = {};
+
+    results.forEach((curr) => {
+      const normalizedName = curr._doc.name.toLowerCase(); // Normalize name to lowercase
+      const key = `${normalizedName}-${curr._doc.mobile}`;
+      if (!aggregatedResults[key]) {
+        // Create a new entry for this key
+        aggregatedResults[key] = {
+          ...curr._doc, // Use _doc to access the actual document data
+          seatNumber: curr._doc.seatNumber, // Initialize seatNumber with the first entry
+        };
+      } else {
+        // Append seat number to existing entry
+        aggregatedResults[key].seatNumber += `,${curr._doc.seatNumber}`;
+      }
+    });
+
+    // Convert the aggregated results back to an array
+    const responseData = Object.values(aggregatedResults);
+
+    // Send the aggregated results back to the client
+    return res.status(200).json(responseData);
+  } catch (error) {
+    console.error("Error retrieving data:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
 
 module.exports = {
   getsearchAll,
   getsearchBus,
   getsearchAllByseat,
   getsearchRouteByvillage,
+  ticketsearch,
 };
