@@ -50,6 +50,7 @@ async function allocateSeats(req, res) {
       gender,
       age,
       mobile,
+      price,
       date,
     } = req.body;
     const existingRoute = await routeInfo.findById(req.params.id);
@@ -88,6 +89,7 @@ async function allocateSeats(req, res) {
         drop: drop,
         age: age,
         gender: gender,
+        price: price,
         mobile: mobile,
         date: date,
         seatNumber: seatNumber.trim(), // Trim any extra whitespace
