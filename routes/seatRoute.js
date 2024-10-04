@@ -22,6 +22,6 @@ router.put("/update/:id", updateseat);
 router.delete("/delete/:id", deleteseat);
 router.get("/search", getsearchAll);
 router.get("/searchbyallseat", getsearchAllByseat);
-router.get("/searchTicket", ticketsearch);
+router.post("/searchTicket", ticketsearch);
 
 module.exports = router;

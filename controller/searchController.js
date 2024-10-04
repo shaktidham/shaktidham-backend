@@ -494,12 +494,6 @@ const ticketsearch = async (req, res) => {
     }
 
     // Check if the date is in the format YYYY/MM/DD
-    const dateRegex = /^\d{4}\/\d{2}\/\d{2}$/; // YYYY/MM/DD format
-    if (!dateRegex.test(date)) {
-      return res
-        .status(400)
-        .json({ message: "Date must be in the format YYYY/MM/DD." });
-    }
 
     // Parse the date string into a Date object
     const dateValue = new Date(date);
@@ -528,7 +522,7 @@ const ticketsearch = async (req, res) => {
     // Check if results are found
     if (results.length === 0) {
       return res
-        .status(404)
+        .status(200)
         .json({ message: "No data found for the provided date and mobile." });
     }
 
