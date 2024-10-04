@@ -1,6 +1,6 @@
 const User = require("../models/user");
 // const Role = require('../models/admin');
-const bcrypt = require("bcrypt");
+// const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 // const tokengen = require("../middleware/authMiddleware");
 // const Key = require("../models/randomkey");
