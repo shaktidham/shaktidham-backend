@@ -39,9 +39,7 @@ const port = process.env.PORT || 3002;
 //     console.error("Error connecting to MongoDB:", err);
 //   });
 mongoose
-  .connect(
-    "mongodb+srv://shaktidhamtravels9:ib8B10PXVXj9mgi1@cluster0.3u4unff.mongodb.net/BusBackend"
-  )
+  .connect(process.env.MONGODB_URL)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
