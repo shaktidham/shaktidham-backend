@@ -71,12 +71,10 @@ async function allocateSeats(req, res) {
     });
 
     if (existingAllocations.length > 0) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Some or all of the requested seats are already allocated for the selected date.",
-        });
+      return res.status(400).json({
+        message:
+          "Some or all of the requested seats are already allocated for the selected date.",
+      });
     }
 
     const allocatedSeats = [];
@@ -86,6 +84,7 @@ async function allocateSeats(req, res) {
         from: from,
         to: to,
         pickup: pickup,
+        price: price,
         drop: drop,
         age: age,
         gender: gender,
