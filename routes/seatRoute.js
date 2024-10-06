@@ -9,6 +9,7 @@ const {
   getsearchAll,
   getsearchAllByseat,
   getsearchRouteByvillage,
+  ticketsearch,
 } = require("../controller/searchController");
 // const {  } = require('../controllers/');
 
@@ -21,5 +22,6 @@ router.put("/update/:id", updateseat);
 router.delete("/delete/:id", deleteseat);
 router.get("/search", getsearchAll);
 router.get("/searchbyallseat", getsearchAllByseat);
+router.post("/searchTicket", ticketsearch);
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const User = require("../models/user");
 // const Role = require('../models/admin');
-const bcrypt = require("bcrypt");
+// const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 // const tokengen = require("../middleware/authMiddleware");
 // const Key = require("../models/randomkey");
@@ -52,7 +52,7 @@ var role1;
 //         role: user.role,
 //         user: user._id,
 //       },
-//       "Hs235",
+//
 //       {
 //         expiresIn: "10h",
 //       }
@@ -85,40 +85,23 @@ exports.login = async (req, res) => {
     // const admin = await User.aggregate(adminPipeline);
 
     // role1=checkAdmin(email,password)
-    console.log("firstdgdf,", user);
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
+    // console.log("firstdgdf,", user);
+    // const isMatch = await bcrypt.compare(password, user.password);
+    // if (!isMatch) {
+    //   return res.status(401).json({ message: "Invalid email or password" });
+    // }
 
-    // Generate a JWT token
     const token = jwt.sign(
       {
         email: user.email,
-        // username: user.username,
-        // role: user.role,
+
         user: user._id,
       },
-      "Hs235",
+      process.env.JWT_SECRET,
       {
         expiresIn: "10h",
       }
     );
-    // const dummytoken = jwt.sign(
-    //   {
-    //     token: token,
-    //     data: {
-    //       email: user.email,
-    //       username: user.username,
-    //       role: user.role,
-    //       user: user._id,
-    //     },
-    //   },
-    //   "Hs235",
-    //   {
-    //     expiresIn: "10h",
-    //   }
-    // );
 
     res.status(200).json({ data: token });
   } catch (err) {
@@ -160,7 +143,7 @@ exports.login = async (req, res) => {
 //         userEmail: userEmail,
 //         key: existKey,
 //       },
-//       "Hs235",
+//       "",
 //       {
 //         expiresIn: "12h",
 //       }
@@ -205,12 +188,12 @@ exports.login = async (req, res) => {
 //   const jwttoken = authHeader.replace("Bearer", "").trim();
 
 //   try {
-//     const isVerified = jwt.verify(jwttoken, "Hs235");
+//     const isVerified = jwt.verify(jwttoken, "");
 //     if (!isVerified.token || !isVerified.data) {
 //       res.status(404).json("Token is Invalid");
 //     }
 
-//     const token = jwt.sign(isVerified.data, "Hs235", {
+//     const token = jwt.sign(isVerified.data, "", {
 //       expiresIn: "5m",
 //     });
 

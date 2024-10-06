@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 // const Role = require('./models/admin');
 const User = require("./models/user");
-const bcrypt = require("bcrypt");
+// const bcrypt = require("bcrypt");
 
 const app = express();
 
@@ -23,9 +23,9 @@ async function seedAdminAndRole() {
 
     const admin = await User.aggregate(adminPipeline);
     if (admin.length === 0) {
-      const hashedPassword = await bcrypt.hash("9999", 10);
+      const hashedPassword = await bcrypt.hash("1812", 10);
       await User.create({
-        email: "mukeshbhai",
+        email: "divu",
         password: hashedPassword, // Note: In a real application, hash passwords securely
       });
     }
