@@ -101,7 +101,7 @@ exports.login = async (req, res) => {
       },
       "Hs235",
       {
-        expiresIn: "10m",
+        expiresIn: "10h",
       }
     );
     // const dummytoken = jwt.sign(
