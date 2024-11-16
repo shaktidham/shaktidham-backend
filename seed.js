@@ -1,40 +1,30 @@
-const express = require("express");
 const mongoose = require("mongoose");
-// const Role = require('./models/admin');
-const User = require("./models/user");
-// const bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt");
+const User = require("./models/user"); // Adjust the path as needed
 
-const app = express();
-
-// Connect to MongoDB
-mongoose
-  .connect(
-    "mongodb+srv://shaktidhamtravels9:ib8B10PXVXj9mgi1@cluster0.3u4unff.mongodb.net/BusBackend"
-    // "mongodb+srv://jayp_3008:jay123@cluster0.xycjrla.mongodb.net/BusSoftware?retryWrites=true&w=majority",
-  )
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
-
-// Define schemasg      
+const MONGO_URI = process.env.MONGODB_URL ||  "mongodb+srv://shaktidhamtravels9:ib8B10PXVXj9mgi1@cluster0.3u4unff.mongodb.net/BusBackend"
 
 async function seedAdminAndRole() {
   try {
-    const adminPipeline = [{ $match: { username: "admin" } }];
+    await mongoose.connect(MONGO_URI);
+    console.log("MongoDB connected for seeding.");
 
-    const admin = await User.aggregate(adminPipeline);
-    if (admin.length === 0) {
+    const adminExists = await User.findOne({ email: "divu" });
+    if (!adminExists) {
       const hashedPassword = await bcrypt.hash("1812", 10);
       await User.create({
         email: "divu",
-        password: hashedPassword, // Note: In a real application, hash passwords securely
+        password: hashedPassword,
       });
+      console.log("Admin user seeded successfully.");
+    } else {
+      console.log("Admin user already exists.");
     }
-
-    console.log("Admin and Role seeded successfully");
   } catch (error) {
-    console.error("Error seeding Admin and Role:", error);
+    console.error("Error seeding Admin and Role:", error.message);
   } finally {
     mongoose.disconnect();
+    console.log("MongoDB connection closed.");
   }
 }
 
