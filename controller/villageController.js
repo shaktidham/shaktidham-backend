@@ -17,8 +17,35 @@ async function villageDetails(req, res) {
 
 async function villageread(req, res) {
   try {
-    const villageDetails = await Villageinfo.find();
-    res.status(200).json({ data: villageDetails });
+    // Destructure query parameters for search, sorting, and limit
+    const { limit = 10, search = '', sortBy = 'village', order = 'asc' } = req.query;
+
+    // Convert `limit` to an integer
+    const limitNum = parseInt(limit);
+
+    // Validate limit input
+    if (isNaN(limitNum) || limitNum < 1) {
+      return res.status(400).json({ error: "Invalid limit number." });
+    }
+
+    // Create search filter if search term is provided
+    const searchFilter = search
+      ? { $or: [{ village: { $regex: search, $options: 'i' } }, { point: { $regex: search, $options: 'i' } }] }
+      : {};
+
+    // Determine sort order (1 for ascending, -1 for descending)
+    const sortOrder = order === 'desc' ? -1 : 1;
+
+    // Find the villages with search, sorting, and limit
+    const villages = await Villageinfo.find(searchFilter)
+      .sort({ [sortBy]: sortOrder })
+      .limit(limitNum);
+
+    // Send the response
+    res.status(200).json({
+      data: villages,
+      limit: limitNum,
+    });
   } catch (error) {
     res.status(500).json({ error: `Error while reading details: ${error.message}` });
   }
