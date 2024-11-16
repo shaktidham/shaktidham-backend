@@ -17,15 +17,19 @@ async function villageDetails(req, res) {
 
 async function villageread(req, res) {
   try {
-    // Destructure query parameters for search, limit, and order
-    const { limit = 10, search = '', order = 'asc' } = req.query;
+    // Destructure query parameters for search, limit, order, and page
+    const { limit = 10, search = '', order = 'asc', page = 1 } = req.query;
 
-    // Convert `limit` to an integer
+    // Convert `limit` and `page` to integers
     const limitNum = parseInt(limit);
+    const pageNum = parseInt(page);
 
-    // Validate limit input
+    // Validate limit and page inputs
     if (isNaN(limitNum) || limitNum < 1) {
       return res.status(400).json({ error: "Invalid limit number." });
+    }
+    if (isNaN(pageNum) || pageNum < 1) {
+      return res.status(400).json({ error: "Invalid page number." });
     }
 
     // Create search filter if search term is provided
@@ -39,19 +43,28 @@ async function villageread(req, res) {
     // Default sort field: village
     const sortField = 'village';
 
-    // Find the villages with search, sorting (by 'village'), and limit
+    // Calculate the skip value (pagination offset)
+    const skip = (pageNum - 1) * limitNum;
+
+    // Find the villages with search, sorting (by 'village'), pagination (skip & limit)
     const villages = await Villageinfo.find(searchFilter)
       .sort({ [sortField]: sortOrder })
-      .limit(limitNum);
+      .skip(skip) // Skip the first N records based on the page number
+      .limit(limitNum); // Limit the number of records returned per page
 
     // Get total count of documents matching the search filter
     const totalEntries = await Villageinfo.countDocuments(searchFilter);
 
-    // Send the response with total entries and paginated data
+    // Calculate total number of pages
+    const totalPages = Math.ceil(totalEntries / limitNum);
+
+    // Send the response with total entries, total pages, and paginated data
     res.status(200).json({
       data: villages,
-      totalEntries: totalEntries, // Include total count
-      limit: limitNum,
+      totalEntries: totalEntries, // Total number of documents
+      totalPages: totalPages,     // Total number of pages
+      currentPage: pageNum,       // Current page
+      limit: limitNum,            // Limit per page
     });
   } catch (error) {
     res.status(500).json({ error: `Error while reading details: ${error.message}` });
