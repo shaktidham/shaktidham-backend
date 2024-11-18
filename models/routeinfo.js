@@ -2,18 +2,34 @@ const mongoose = require("mongoose");
 
 const RouteinfoSchema = new mongoose.Schema(
   {
-    fromtime:{type:String},
-    totime:{type:String},
-    // bookingInfo: [ {type: mongoose.Schema.Types.ObjectId, ref: "BookedSeat" }],
+    fromtime: { type: String },
+    totime: { type: String },
     first: { type: String },
     last: { type: String },
     price: { type: Number },
     date: { type: Date },
-    from: [{ type: String }],
-    to: [{ type: String }],
+    
+    // Updated 'from' to be an array of objects with village, point, and time
+    from: [
+      {
+        village: { type: String },
+        point: { type: String },
+        time: { type: String },
+      }
+    ],
+
+    // Updated 'to' to be an array of objects with village, point, and time
+    to: [
+      {
+        village: { type: String },
+        point: { type: String },
+        time: { type: String },
+      }
+    ],
   },
   {
     timestamps: true,
   }
 );
+
 module.exports = mongoose.model("Routeinfo", RouteinfoSchema);
