@@ -3,7 +3,7 @@ const Businfo = require("../models/routeinfo");
 async function routeDetails(req, res) {
   try {
     const { date,   fromtime,
-      totime, to, from, price } = req.body;
+      totime, to, from, price,first,last } = req.body;
 
     const busdetails1 = await Businfo.create({
       date,
@@ -11,7 +11,7 @@ async function routeDetails(req, res) {
       totime,
       from,
       to,
-      price,
+      price,first,last
     });
     res.status(200).json({ data: busdetails1 });
   } catch (error) {
@@ -41,7 +41,7 @@ async function routeread(req, res) {
 async function routeupdate(req, res) {
   try {
     const { date,    fromtime,
-      totime, to, from, price } = req.body;
+      totime, to, from, price,first,last } = req.body;
 
     const busdetails3 = await Businfo.findByIdAndUpdate(
       req.params.id,
@@ -52,6 +52,7 @@ async function routeupdate(req, res) {
         from,
         to,
         price,
+        first,last
       },
       { new: true }
     );
