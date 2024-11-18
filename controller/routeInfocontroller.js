@@ -2,11 +2,13 @@ const Businfo = require("../models/routeinfo");
 
 async function routeDetails(req, res) {
   try {
-    const { date, route, to, from, price } = req.body;
+    const { date,   fromtime,
+      totime, to, from, price } = req.body;
 
     const busdetails1 = await Businfo.create({
       date,
-      route,
+      fromtime,
+      totime,
       from,
       to,
       price,
@@ -38,12 +40,14 @@ async function routeread(req, res) {
 }
 async function routeupdate(req, res) {
   try {
-    const { date, route, to, from, price } = req.body;
+    const { date,    fromtime,
+      totime, to, from, price } = req.body;
 
     const busdetails3 = await Businfo.findByIdAndUpdate(
       req.params.id,
       {
-        route,
+        fromtime,
+        totime,
         date,
         from,
         to,

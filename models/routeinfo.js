@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const RouteinfoSchema = new mongoose.Schema(
   {
-    route: { type: String },
+    fromtime:{type:String},
+    totime:{type:String},
     // bookingInfo: [ {type: mongoose.Schema.Types.ObjectId, ref: "BookedSeat" }],
     busInfo: { type: String },
     price: { type: Number },
