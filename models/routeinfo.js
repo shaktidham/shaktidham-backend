@@ -6,6 +6,7 @@ const RouteinfoSchema = new mongoose.Schema(
     totime: { type: String },
     first: { type: String },
     last: { type: String },
+    Busname:{type:String},
     price: { type: Number },
     date: { type: Date },
     
