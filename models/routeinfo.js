@@ -9,6 +9,9 @@ const RouteinfoSchema = new mongoose.Schema(
     Busname:{type:String},
     price: { type: Number },
     date: { type: Date },
+    location:{type:String},
+    driver:{type:String},
+    cabinprice:{type:String},
     
     // Updated 'from' to be an array of objects with village, point, and time
     from: [
