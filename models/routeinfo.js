@@ -11,7 +11,7 @@ const RouteinfoSchema = new mongoose.Schema(
     date: { type: Date },
     location:{type:String},
     driver:{type:String},
-    cabinprice:{type:String},
+    cabinprice:{type:Number},
     
     // Updated 'from' to be an array of objects with village, point, and time
     from: [
