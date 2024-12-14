@@ -31,14 +31,52 @@ async function routedelete(req, res) {
 }
 async function routeread(req, res) {
   try {
-    // const { date, route } = req.body;
+    // Extract 'date' from query parameters
+    const { date } = req.query;
+    console.log(date, req.query, "date");
 
-    const busdetails = await Businfo.find();
-    res.status(200).json({ data: busdetails });
+    // Check if date is provided
+    if (date) {
+      // Parse the date string into a Date object
+      const dateValue = new Date(date);
+
+      // Check if the date conversion is valid
+      if (!isNaN(dateValue.getTime())) {
+        // Create a copy of the date for startOfDay and endOfDay
+        const startOfDay = new Date(dateValue.getTime()); // copy the date
+        startOfDay.setHours(0, 0, 0, 0); // set to start of the day
+        
+        const endOfDay = new Date(dateValue.getTime()); // copy the date
+        endOfDay.setHours(23, 59, 59, 999); // set to end of the day
+
+        // Create a filter to match documents where the date is within the specified date range
+        const filter = {
+          date: {
+            $gte: startOfDay,
+            $lte: endOfDay,
+          },
+        };
+
+        // Find bus details for the specified date using the constructed filter
+        const busdetails = await Businfo.find(filter);
+
+        // Return the bus details
+        res.status(200).json({ data: busdetails });
+      } else {
+        return res
+          .status(400)
+          .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+      }
+    } else {
+      return res.status(400).json({ error: "Date parameter is required." });
+    }
   } catch (error) {
-    res.status(500).json(`error while fetching details ${error}`);
+    res.status(500).json({ message: `Error while fetching details: ${error.message}` });
   }
 }
+
+
+
 async function routeupdate(req, res) {
   try {
     const { date,    fromtime,

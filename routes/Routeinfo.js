@@ -6,7 +6,7 @@ const {
   routedelete,
 } = require("../controller/routeInfocontroller");
 const { getsearchRouteByvillage } = require("../controller/searchController");
-// const { getsearchBus } = require("../controller/searchController");
+const { getsearchBus } = require("../controller/searchController");
 // const { allocateSeats } = require('../controller/seatController');
 // const {  } = require('../controllers/');
 
@@ -17,5 +17,6 @@ router.put("/update/:id", routeupdate);
 router.get("/read", routeread);
 router.delete("/delete/:id", routedelete);
 router.get("/searchbyvillage", getsearchRouteByvillage);
+router.get("/searchBus", getsearchBus);
 
 module.exports = router;

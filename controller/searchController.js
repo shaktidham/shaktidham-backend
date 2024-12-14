@@ -2,76 +2,82 @@ const bookedseat = require("../models/bookedseat");
 const SeatModel = require("../models/bookedseat");
 const Businfo = require("../models/busInfo");
 const Routeinfo = require("../models/routeinfo");
+
+
 async function getsearchAll(req, res) {
   try {
-    // Extract the Date parameter from the query string
-    const { Date: dateStr, route } = req.query;
-
-    // Initialize an empty filter object
+    // Extract parameters
+    const { date: dateStr, _id } = req.query;
+    console.log("Received query parameters:", req.query);  // Log the query parameters
     const filter = {};
-    const ExsitingRoute = await Routeinfo.findOne({ route });
 
-    // Add date range filter if the date is provided
-    if (dateStr) {
-      // Parse the date string into a Date object
-      const dateValue = new Date(dateStr);
-
-      // Check if the date conversion is valid
-      if (!isNaN(dateValue.getTime())) {
-        // Define the start and end of the day
-        const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
-
-        // Create a filter to match documents where the date is within the specified date range
-        filter.date = {
-          $gte: startOfDay,
-          $lte: endOfDay,
-        };
-      } else {
-        return res
-          .status(400)
-          .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+    // Fetch routeinfo based on routeid
+    let existingRoute;
+    try {
+      existingRoute = await Routeinfo.findOne({ _id });
+      if (!existingRoute) {
+        console.log("Route not found:", _id);  // Log if route is not found
+        return res.status(404).json({ error: "Route not found." });
       }
+    } catch (err) {
+      return res.status(500).json({ error: "Error fetching routeinfo from DB: " + err.message });
     }
 
-    // Build the aggregation pipeline
-    const pipeline = [];
+    // Handle date filter if provided
+    if (dateStr) {
+      console.log("dateStr is provided:", dateStr);  // Log dateStr
+      
+      // Reformat the date string from YYYY/MM/DD to YYYY-MM-DD
+      const formattedDateStr = dateStr.replace(/\//g, '-');  // Replace all slashes with hyphens
+      const dateValue = new Date(formattedDateStr);
+      console.log("Formatted dateStr:", formattedDateStr);  // Log the formatted date string
+      console.log("Parsed dateValue:", dateValue);  // Log the parsed date value
 
-    // Add $match stage to the pipeline if there's a valid filter
-    if (Object.keys(filter).length > 0) {
-      pipeline.push({
-        $match: filter,
-      });
+      if (isNaN(dateValue)) {
+        return res.status(400).json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+      }
+
+      // Create start and end of the day
+      const startOfDay = new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate(), 0, 0, 0, 0);
+      const endOfDay = new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate(), 23, 59, 59, 999);
+
+      console.log("startOfDay:", startOfDay);  // Log start of day
+      console.log("endOfDay:", endOfDay);  // Log end of day
+
+      // Set the date range filter
+      filter.date = { $gte: startOfDay, $lte: endOfDay };
     }
-    pipeline.push(
+
+    // Build aggregation pipeline
+    const pipeline = [
       {
         $match: {
-          route: ExsitingRoute._id,
+          ...filter,
+          route: existingRoute._id,  // Filter by route
         },
       },
       {
         $lookup: {
-          from: "routeinfos", // The collection to join
-          localField: "route", // Field from the `orders` collection
-          foreignField: "_id", // Field from the `customers` collection
-          as: "routeDetails", // Output array field name
+          from: "routeinfos",
+          localField: "route",
+          foreignField: "_id",
+          as: "routeDetails",
         },
       },
       {
-        $unwind: "$routeDetails", // Unwind the array to merge customer details
-      }
-    );
-    console.log("pipeline", pipeline);
+        $project: {
+          routeDetails: 0,  // Exclude routeDetails field
+        },
+      },
+    ];
 
-    // Run the aggregation pipeline
+    // Execute aggregation
     const documents = await SeatModel.aggregate(pipeline);
 
-    return res.status(200).json({
-      data: documents,
-    });
+    return res.status(200).json({ data: documents });
   } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({ error: error.message });
+    console.error("Server error:", error);  // Log the full error for debugging
+    return res.status(500).json({ error: "Server error: " + error.message });
   }
 }
 
