@@ -21,15 +21,15 @@ async function villageread(req, res) {
     const { search = '', order = 'asc' } = req.query;
     let { limit, page } = req.query;
 
-    // Convert `limit` and `page` to integers
-    const limitNum = parseInt(limit);
-    const pageNum = parseInt(page);
+    // Convert `limit` and `page` to integers, if they exist
+    const limitNum = limit ? parseInt(limit) : null;  // Allow null for no limit
+    const pageNum = page ? parseInt(page) : null;  // Allow null for no page
 
-    // Validate limit and page inputs
-    if (isNaN(limitNum) || limitNum < 1) {
+    // Validate limit and page inputs if they are provided
+    if (limitNum !== null && (isNaN(limitNum) || limitNum < 1)) {
       return res.status(400).json({ error: "Invalid limit number." });
     }
-    if (isNaN(pageNum) || pageNum < 1) {
+    if (pageNum !== null && (isNaN(pageNum) || pageNum < 1)) {
       return res.status(400).json({ error: "Invalid page number." });
     }
 
@@ -44,33 +44,37 @@ async function villageread(req, res) {
     // Default sort field: village
     const sortField = 'village';
 
-    // Calculate the skip value (pagination offset)
-    const skip = (pageNum - 1) * limitNum;
+    // Prepare query object for find operation
+    const query = Villageinfo.find(searchFilter).sort({ [sortField]: sortOrder });
 
-    // Find the villages with search, sorting (by 'village'), pagination (skip & limit)
-    const villages = await Villageinfo.find(searchFilter)
-      .sort({ [sortField]: sortOrder })
-      .skip(skip) // Skip the first N records based on the page number
-      .limit(limitNum); // Limit the number of records returned per page
+    // Apply pagination if limit and page are specified
+    if (limitNum !== null && pageNum !== null) {
+      const skip = (pageNum - 1) * limitNum;  // Calculate the skip value (pagination offset)
+      query.skip(skip).limit(limitNum);  // Apply skip and limit
+    }
+
+    // Find the villages with search, sorting, and optional pagination
+    const villages = await query;
 
     // Get total count of documents matching the search filter
     const totalEntries = await Villageinfo.countDocuments(searchFilter);
 
-    // Calculate total number of pages
-    const totalPages = Math.ceil(totalEntries / limitNum);
+    // Calculate total number of pages if pagination is applied
+    const totalPages = limitNum !== null ? Math.ceil(totalEntries / limitNum) : 1;
 
     // Send the response with total entries, total pages, and paginated data
     res.status(200).json({
       data: villages,
-      totalEntries: totalEntries, // Total number of documents
-      totalPages: totalPages,     // Total number of pages
-      currentPage: pageNum,       // Current page
-      limit: limitNum,            // Limit per page
+      totalEntries: totalEntries,  // Total number of documents
+      totalPages: totalPages,      // Total number of pages (only meaningful if pagination is applied)
+      currentPage: pageNum || 1,   // Current page, defaulting to 1 if not specified
+      limit: limitNum || totalEntries,  // Limit per page (or show all entries)
     });
   } catch (error) {
     res.status(500).json({ error: `Error while reading details: ${error.message}` });
   }
 }
+
 
 
 async function villagedelete(req, res) {
