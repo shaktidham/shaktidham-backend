@@ -18,7 +18,8 @@ async function villageDetails(req, res) {
 async function villageread(req, res) {
   try {
     // Destructure query parameters for search, limit, order, and page
-    const { limit = 10, search = '', order = 'asc', page = 1 } = req.query;
+    const { search = '', order = 'asc' } = req.query;
+    let { limit, page } = req.query;
 
     // Convert `limit` and `page` to integers
     const limitNum = parseInt(limit);
