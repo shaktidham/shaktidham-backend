@@ -9,6 +9,7 @@ const RouteinfoSchema = new mongoose.Schema(
     Busname:{type:String},
     price: { type: Number },
     date: { type: Date },
+    enddate:{ type: Date },
     location:{type:String},
     driver:{type:String},
     cabinprice:{type:Number},

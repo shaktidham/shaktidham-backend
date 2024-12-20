@@ -15,6 +15,7 @@ const bookedseatSchema = new mongoose.Schema(
     gender: { type: String },
     price: { type: Number },
     age: { type: String },
+    extradetails: { type: String },
 
     // seatId:{type:mongoose.Schema.Types.ObjectId, ref: "SeatSchema"}
   },

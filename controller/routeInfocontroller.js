@@ -2,23 +2,45 @@ const Businfo = require("../models/routeinfo");
 
 async function routeDetails(req, res) {
   try {
-    const { date,   fromtime,
-      totime, to, from, price,first,last ,Busname,location,driver,cabinprice} = req.body;
+    const { date, fromtime, totime, to, from, price, first, last, Busname, location, driver, cabinprice, enddate } = req.body;
 
-    const busdetails1 = await Businfo.create({
-      date,
-      fromtime,
-      totime,
-      Busname,
-      from,
-      to,
-      price,first,last,location,driver,cabinprice
-    });
-    res.status(200).json({ data: busdetails1 });
+    // Convert the date strings to Date objects
+    const startDate = new Date(date);  // Start date
+    const endDate = new Date(enddate);  // End date
+
+    // Check if the startDate is less than the endDate
+    if (startDate > endDate) {
+      return res.status(400).json("Start date cannot be later than the end date");
+    }
+
+    const busDetails = [];
+
+    // Loop through each day between startDate and endDate
+    for (let currentDate = startDate; currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
+      const busDetail = await Businfo.create({
+        date: new Date(currentDate),  // Set the current date in the loop
+        fromtime,
+        totime,
+        Busname,
+        from,
+        to,
+        price,
+        first,
+        last,
+        location,
+        driver,
+        cabinprice
+      });
+
+      busDetails.push(busDetail);  // Add the created bus detail to the array
+    }
+
+    res.status(200).json({ data: busDetails });
   } catch (error) {
-    res.status(500).json(`error while fetching details ${error}`);
+    res.status(500).json(`Error while fetching details: ${error}`);
   }
 }
+
 async function routedelete(req, res) {
   try {
     // const { route } = req.body;

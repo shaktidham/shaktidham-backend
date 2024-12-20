@@ -52,9 +52,10 @@ async function allocateSeats(req, res) {
       mobile,
       price,
       date,
+      extradetails,
     } = req.body;
 
-    console.log(seatNumber, "typeof seatNumber");
+  
 
     // Check if seatNumber is provided and is a valid string or array
     if (!seatNumber || (typeof seatNumber !== "string" && !Array.isArray(seatNumber))) {
@@ -65,7 +66,7 @@ async function allocateSeats(req, res) {
     const seatArray = Array.isArray(seatNumber) ? seatNumber : seatNumber.split(",");
 
     const existingRoute = await routeInfo.findById(req.params.id);
-    console.log(req.body);
+
 
     if (!existingRoute) {
       return res.status(404).json({ message: "Route not found" });
@@ -98,6 +99,7 @@ async function allocateSeats(req, res) {
         age: age,
         gender: gender,
         mobile: mobile,
+        extradetails:extradetails,
         date: date,
         seatNumber: seatNumber.trim(), // Trim any extra whitespace for consistency
         route: existingRoute._id, // Associate with the existing route
@@ -132,12 +134,20 @@ async function deleteseat(req, res) {
 }
 async function updateseat(req, res) {
   try {
-    const { name, vilage, mobile } = req.body;
+    const { name, mobile,from,to,pickup,price,drop,age,gender,extradetails } = req.body;
 
     const currentSeat = await SeatModel.findByIdAndUpdate(req.params.id, {
       name: name,
-      vilage: vilage,
       mobile: mobile,
+      from: from,
+      to: to,
+      pickup: pickup,
+      price: price,
+      drop: drop,
+      age: age,
+      gender: gender,
+      extradetails:extradetails,
+   
     });
     res.status(201).json({ data: currentSeat });
   } catch (error) {
