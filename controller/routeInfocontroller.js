@@ -2,23 +2,47 @@ const Businfo = require("../models/routeinfo");
 
 async function routeDetails(req, res) {
   try {
-    const { date, fromtime, totime, to, from, price, first, last, Busname, location, driver, cabinprice, enddate } = req.body;
+    const {
+      date,
+      fromtime,
+      totime,
+      to,
+      from,
+      price,
+      first,
+      last,
+      Busname,
+      location,
+      driver,
+      cabinprice,
+      enddate,
+    } = req.body;
 
     // Convert the date strings to Date objects
-    const startDate = new Date(date);  // Start date
-    const endDate = new Date(enddate);  // End date
+    const startDate = new Date(date); // Start date
+    const endDate = new Date(enddate); // End date
 
     // Check if the startDate is less than the endDate
     if (startDate > endDate) {
-      return res.status(400).json("Start date cannot be later than the end date");
+      return res
+        .status(400)
+        .json("Start date cannot be later than the end date");
     }
 
     const busDetails = [];
+    // const pointDeta
+    // for(let i of to){
+
+    // }
 
     // Loop through each day between startDate and endDate
-    for (let currentDate = startDate; currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
+    for (
+      let currentDate = startDate;
+      currentDate <= endDate;
+      currentDate.setDate(currentDate.getDate() + 1)
+    ) {
       const busDetail = await Businfo.create({
-        date: new Date(currentDate),  // Set the current date in the loop
+        date: new Date(currentDate), // Set the current date in the loop
         fromtime,
         totime,
         Busname,
@@ -29,10 +53,10 @@ async function routeDetails(req, res) {
         last,
         location,
         driver,
-        cabinprice
+        cabinprice,
       });
 
-      busDetails.push(busDetail);  // Add the created bus detail to the array
+      busDetails.push(busDetail); // Add the created bus detail to the array
     }
 
     res.status(200).json({ data: busDetails });
@@ -67,7 +91,7 @@ async function routeread(req, res) {
         // Create a copy of the date for startOfDay and endOfDay
         const startOfDay = new Date(dateValue.getTime()); // copy the date
         startOfDay.setHours(0, 0, 0, 0); // set to start of the day
-        
+
         const endOfDay = new Date(dateValue.getTime()); // copy the date
         endOfDay.setHours(23, 59, 59, 999); // set to end of the day
 
@@ -93,16 +117,28 @@ async function routeread(req, res) {
       return res.status(400).json({ error: "Date parameter is required." });
     }
   } catch (error) {
-    res.status(500).json({ message: `Error while fetching details: ${error.message}` });
+    res
+      .status(500)
+      .json({ message: `Error while fetching details: ${error.message}` });
   }
 }
 
-
-
 async function routeupdate(req, res) {
   try {
-    const { date,    fromtime,
-      totime, to, from, price,first,last,Busname,location,driver,cabinprice } = req.body;
+    const {
+      date,
+      fromtime,
+      totime,
+      to,
+      from,
+      price,
+      first,
+      last,
+      Busname,
+      location,
+      driver,
+      cabinprice,
+    } = req.body;
 
     const busdetails3 = await Businfo.findByIdAndUpdate(
       req.params.id,
@@ -114,7 +150,11 @@ async function routeupdate(req, res) {
         to,
         Busname,
         price,
-        first,last,location,driver,cabinprice
+        first,
+        last,
+        location,
+        driver,
+        cabinprice,
       },
       { new: true }
     );
