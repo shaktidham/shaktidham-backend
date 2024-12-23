@@ -3,12 +3,11 @@ const SeatModel = require("../models/bookedseat");
 const Businfo = require("../models/busInfo");
 const Routeinfo = require("../models/routeinfo");
 
-
 async function getsearchAll(req, res) {
   try {
     // Extract parameters
     const { date: dateStr, _id } = req.query;
-    console.log("Received query parameters:", req.query);  // Log the query parameters
+
     const filter = {};
 
     // Fetch routeinfo based on routeid
@@ -16,33 +15,45 @@ async function getsearchAll(req, res) {
     try {
       existingRoute = await Routeinfo.findOne({ _id });
       if (!existingRoute) {
-        console.log("Route not found:", _id);  // Log if route is not found
         return res.status(404).json({ error: "Route not found." });
       }
     } catch (err) {
-      return res.status(500).json({ error: "Error fetching routeinfo from DB: " + err.message });
+      return res
+        .status(500)
+        .json({ error: "Error fetching routeinfo from DB: " + err.message });
     }
 
     // Handle date filter if provided
     if (dateStr) {
-      console.log("dateStr is provided:", dateStr);  // Log dateStr
-      
       // Reformat the date string from YYYY/MM/DD to YYYY-MM-DD
-      const formattedDateStr = dateStr.replace(/\//g, '-');  // Replace all slashes with hyphens
+      const formattedDateStr = dateStr.replace(/\//g, "-"); // Replace all slashes with hyphens
       const dateValue = new Date(formattedDateStr);
-      console.log("Formatted dateStr:", formattedDateStr);  // Log the formatted date string
-      console.log("Parsed dateValue:", dateValue);  // Log the parsed date value
 
       if (isNaN(dateValue)) {
-        return res.status(400).json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+        return res
+          .status(400)
+          .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
       }
 
       // Create start and end of the day
-      const startOfDay = new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate(), 0, 0, 0, 0);
-      const endOfDay = new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate(), 23, 59, 59, 999);
-
-      console.log("startOfDay:", startOfDay);  // Log start of day
-      console.log("endOfDay:", endOfDay);  // Log end of day
+      const startOfDay = new Date(
+        dateValue.getFullYear(),
+        dateValue.getMonth(),
+        dateValue.getDate(),
+        0,
+        0,
+        0,
+        0
+      );
+      const endOfDay = new Date(
+        dateValue.getFullYear(),
+        dateValue.getMonth(),
+        dateValue.getDate(),
+        23,
+        59,
+        59,
+        999
+      );
 
       // Set the date range filter
       filter.date = { $gte: startOfDay, $lte: endOfDay };
@@ -53,7 +64,7 @@ async function getsearchAll(req, res) {
       {
         $match: {
           ...filter,
-          route: existingRoute._id,  // Filter by route
+          route: existingRoute._id, // Filter by route
         },
       },
       {
@@ -66,7 +77,7 @@ async function getsearchAll(req, res) {
       },
       {
         $project: {
-          routeDetails: 0,  // Exclude routeDetails field
+          routeDetails: 0, // Exclude routeDetails field
         },
       },
     ];
@@ -76,7 +87,7 @@ async function getsearchAll(req, res) {
 
     return res.status(200).json({ data: documents });
   } catch (error) {
-    console.error("Server error:", error);  // Log the full error for debugging
+    console.error("Server error:", error); // Log the full error for debugging
     return res.status(500).json({ error: "Server error: " + error.message });
   }
 }

@@ -1,4 +1,5 @@
 const Businfo = require("../models/routeinfo");
+const villageadd = require("../models/villageadd");
 
 async function routeDetails(req, res) {
   try {
@@ -7,7 +8,7 @@ async function routeDetails(req, res) {
       fromtime,
       totime,
       to,
-      from,
+      from, // This is the array of villages in the request body
       price,
       first,
       last,
@@ -29,15 +30,35 @@ async function routeDetails(req, res) {
         .json("Start date cannot be later than the end date");
     }
 
+    // Fetch all village data from the database at once
+    const villageNames = [...from, ...to].map((item) => item.village);
+    const villageRecords = await villageadd
+      .find({ village: { $in: villageNames } })
+      .lean();
+
+    // Create a lookup map from the database records
+    const villageMap = villageRecords.reduce((acc, { village, evillage }) => {
+      acc[village] = evillage;
+      return acc;
+    }, {});
+
+    // Helper function to map villages and update the array
+    const mapVillages = (array) => {
+      return array.map(({ village, point }) => ({
+        village,
+        evillage: villageMap[village] || null,
+        point,
+      }));
+    };
+
+    // Update 'from' and 'to' arrays with mapped village data
+    const updatedFrom = mapVillages(from);
+    const updatedTo = mapVillages(to);
+
+    // Create bus details for each day in the given date range
     const busDetails = [];
-    // const pointDeta
-    // for(let i of to){
-
-    // }
-
-    // Loop through each day between startDate and endDate
     for (
-      let currentDate = startDate;
+      let currentDate = new Date(startDate);
       currentDate <= endDate;
       currentDate.setDate(currentDate.getDate() + 1)
     ) {
@@ -46,8 +67,8 @@ async function routeDetails(req, res) {
         fromtime,
         totime,
         Busname,
-        from,
-        to,
+        from: updatedFrom,
+        to: updatedTo,
         price,
         first,
         last,
@@ -79,7 +100,6 @@ async function routeread(req, res) {
   try {
     // Extract 'date' from query parameters
     const { date } = req.query;
-    console.log(date, req.query, "date");
 
     // Check if date is provided
     if (date) {
@@ -140,14 +160,60 @@ async function routeupdate(req, res) {
       cabinprice,
     } = req.body;
 
-    const busdetails3 = await Businfo.findByIdAndUpdate(
-      req.params.id,
+    // Validate required fields
+    if (
+      !date ||
+      !fromtime ||
+      !totime ||
+      !from ||
+      !to ||
+      !Busname ||
+      !price ||
+      !first ||
+      !last ||
+      !location ||
+      !driver ||
+      !cabinprice
+    ) {
+      return res
+        .status(400)
+        .json({ message: "All required fields must be provided" });
+    }
+
+    // Fetch village data for 'from' and 'to' arrays (combine both arrays for one query)
+    const villageNames = [...from, ...to].map((item) => item.village);
+    const villageRecords = await villageadd
+      .find({ village: { $in: villageNames } })
+      .lean();
+
+    // Create a lookup map for villages to their evillage
+    const villageMap = villageRecords.reduce((acc, { village, evillage }) => {
+      acc[village] = evillage;
+      return acc;
+    }, {});
+
+    // Helper function to update villages in 'from' and 'to' arrays
+    const updateVillages = (array) => {
+      return array.map(({ village, point }) => ({
+        village,
+        evillage: villageMap[village] || null, // Automatically update evillage
+        point,
+      }));
+    };
+
+    // Update 'from' and 'to' arrays with their evillages
+    const updatedFrom = updateVillages(from);
+    const updatedTo = updateVillages(to);
+
+    // Find the bus info by ID and update the document
+    const busDetails = await Businfo.findByIdAndUpdate(
+      req.params.id, // Find the bus details using the ID passed in the URL parameters
       {
         fromtime,
         totime,
         date,
-        from,
-        to,
+        from: updatedFrom,
+        to: updatedTo,
         Busname,
         price,
         first,
@@ -156,11 +222,22 @@ async function routeupdate(req, res) {
         driver,
         cabinprice,
       },
-      { new: true }
+      { new: true } // This option returns the updated document
     );
-    res.status(200).json({ data: busdetails3 });
+
+    // If no document is found with the given ID
+    if (!busDetails) {
+      return res.status(404).json({ message: "Bus details not found" });
+    }
+
+    // Send the updated bus details back to the client
+    res.status(200).json({ data: busDetails });
   } catch (error) {
-    res.status(500).json(`error while fetching details ${error}`);
+    // Catch any other errors and send a generic error message
+    console.error("Error while updating bus details: ", error);
+    res
+      .status(500)
+      .json({ message: `Error while updating bus details: ${error.message}` });
   }
 }
 

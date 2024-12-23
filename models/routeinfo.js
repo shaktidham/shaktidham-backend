@@ -17,6 +17,7 @@ const RouteinfoSchema = new mongoose.Schema(
     from: [
       {
         village: { type: String },
+        evillage: { type: String },
         point: [
           {
             pointName: { type: String },
@@ -30,6 +31,7 @@ const RouteinfoSchema = new mongoose.Schema(
     to: [
       {
         village: { type: String },
+        evillage: { type: String },
         point: [
           {
             pointName: { type: String },
