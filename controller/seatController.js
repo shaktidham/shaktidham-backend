@@ -52,21 +52,28 @@ async function allocateSeats(req, res) {
       mobile,
       price,
       date,
+      totime,
+      pickuptime,
       extradetails,
     } = req.body;
 
-  
-
     // Check if seatNumber is provided and is a valid string or array
-    if (!seatNumber || (typeof seatNumber !== "string" && !Array.isArray(seatNumber))) {
-      return res.status(400).json({ message: "seatNumber must be provided and be either a string or an array." });
+    if (
+      !seatNumber ||
+      (typeof seatNumber !== "string" && !Array.isArray(seatNumber))
+    ) {
+      return res.status(400).json({
+        message:
+          "seatNumber must be provided and be either a string or an array.",
+      });
     }
 
     // If seatNumber is a string, split it into an array
-    const seatArray = Array.isArray(seatNumber) ? seatNumber : seatNumber.split(",");
+    const seatArray = Array.isArray(seatNumber)
+      ? seatNumber
+      : seatNumber.split(",");
 
     const existingRoute = await routeInfo.findById(req.params.id);
-
 
     if (!existingRoute) {
       return res.status(404).json({ message: "Route not found" });
@@ -81,7 +88,8 @@ async function allocateSeats(req, res) {
 
     if (existingAllocations.length > 0) {
       return res.status(400).json({
-        message: "Some or all of the requested seats are already allocated for the selected date.",
+        message:
+          "Some or all of the requested seats are already allocated for the selected date.",
       });
     }
 
@@ -94,12 +102,14 @@ async function allocateSeats(req, res) {
         from: from,
         to: to,
         pickup: pickup,
+        pickuptime: pickuptime,
+        totime: totime,
         price: price,
         drop: drop,
         age: age,
         gender: gender,
         mobile: mobile,
-        extradetails:extradetails,
+        extradetails: extradetails,
         date: date,
         seatNumber: seatNumber.trim(), // Trim any extra whitespace for consistency
         route: existingRoute._id, // Associate with the existing route
@@ -110,11 +120,11 @@ async function allocateSeats(req, res) {
     // Return the allocated seat data
     res.status(201).json({ data: allocatedSeats });
   } catch (error) {
-    res.status(500).json({ message: `Error while allocating seats: ${error.message}` });
+    res
+      .status(500)
+      .json({ message: `Error while allocating seats: ${error.message}` });
   }
 }
-
-
 
 async function allseats(req, res) {
   try {
@@ -134,7 +144,18 @@ async function deleteseat(req, res) {
 }
 async function updateseat(req, res) {
   try {
-    const { name, mobile,from,to,pickup,price,drop,age,gender,extradetails } = req.body;
+    const {
+      name,
+      mobile,
+      from,
+      to,
+      pickup,
+      price,
+      drop,
+      age,
+      gender,
+      extradetails,
+    } = req.body;
 
     const currentSeat = await SeatModel.findByIdAndUpdate(req.params.id, {
       name: name,
@@ -146,8 +167,7 @@ async function updateseat(req, res) {
       drop: drop,
       age: age,
       gender: gender,
-      extradetails:extradetails,
-   
+      extradetails: extradetails,
     });
     res.status(201).json({ data: currentSeat });
   } catch (error) {

@@ -11,6 +11,8 @@ const bookedseatSchema = new mongoose.Schema(
     from: { type: String },
     to: { type: String },
     pickup: { type: String },
+    totime: { type: String },
+    pickuptime: { type: String },
     drop: { type: String },
     gender: { type: String },
     price: { type: Number },

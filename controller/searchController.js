@@ -572,10 +572,189 @@ const ticketsearch = async (req, res) => {
   }
 };
 
+async function getsearchRouteBymobile(req, res) {
+  try {
+    const { date: dateStr, route } = req.query;
+
+    if (!route) {
+      return res.status(400).json({ error: "Route is required." });
+    }
+
+    if (dateStr) {
+      // Reformat the date string from YYYY/MM/DD to YYYY-MM-DD
+      const formattedDateStr = dateStr.replace(/\//g, "-"); // Replace all slashes with hyphens
+      const dateValue = new Date(formattedDateStr);
+
+      if (isNaN(dateValue)) {
+        return res
+          .status(400)
+          .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+      }
+
+      // Create start of the day (midnight) and end of the day (just before the next midnight)
+      const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
+
+      // Query for seats within the date range and specific route
+      const seats = await SeatModel.find({
+        route,
+        date: { $gte: startOfDay, $lte: endOfDay },
+      });
+
+      // Group by mobile number and gather seat numbers in an array, along with other details
+      const seatGroupByMobile = seats.reduce((acc, seat) => {
+        if (!acc[seat.mobile]) {
+          acc[seat.mobile] = {
+            mobile: seat.mobile,
+            seatNumbers: [],
+            extradetails: seat.extradetails, // include any extra details from the seat
+            name: seat.name, // include name or any other details
+            date: seat.date,
+            from: seat.from,
+            to: seat.to,
+            pickup: seat.pickup,
+            drop: seat.drop,
+            gender: seat.gender,
+            price: seat.price,
+            age: seat.age,
+            extradetails: seat.extradetails,
+          };
+        }
+
+        // Group seat numbers in an array
+        acc[seat.mobile].seatNumbers.push(seat.seatNumber);
+
+        return acc;
+      }, {});
+
+      // Convert the grouped object into an array for the response
+      const response = Object.values(seatGroupByMobile);
+
+      return res.status(200).json(response);
+    } else {
+      // If no date provided, find all seats for the given route
+      const seats = await SeatModel.find({ route });
+
+      // Group by mobile number and gather seat numbers in an array, along with other details
+      const seatGroupByMobile = seats.reduce((acc, seat) => {
+        if (!acc[seat.mobile]) {
+          acc[seat.mobile] = {
+            mobile: seat.mobile,
+            seatNumbers: [],
+            extradetails: seat.extradetails, // include any extra details from the seat
+            name: seat.name, // include name or any other details
+          };
+        }
+
+        // Group seat numbers in an array
+        acc[seat.mobile].seatNumbers.push(seat.seatNumber);
+
+        return acc;
+      }, {});
+
+      // Convert the grouped object into an array for the response
+      const response = Object.values(seatGroupByMobile);
+
+      return res.status(200).json(response);
+    }
+  } catch (error) {
+    console.error("Server error:", error); // Log the full error for debugging
+    return res.status(500).json({ error: "Server error: " + error.message });
+  }
+}
+
+async function getchartprint(req, res) {
+  try {
+    const { date: dateStr, route } = req.query;
+
+    if (!route) {
+      return res.status(400).json({ error: "Route is required." });
+    }
+
+    if (dateStr) {
+      // Reformat the date string from YYYY/MM/DD to YYYY-MM-DD
+      const formattedDateStr = dateStr.replace(/\//g, "-"); // Replace all slashes with hyphens
+      const dateValue = new Date(formattedDateStr);
+
+      if (isNaN(dateValue)) {
+        return res
+          .status(400)
+          .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+      }
+
+      // Create start of the day (midnight) and end of the day (just before the next midnight)
+      const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
+
+      // Query for seats within the date range and specific route
+      const seats = await SeatModel.find({
+        route,
+        date: { $gte: startOfDay, $lte: endOfDay },
+      });
+
+      // Group by pickuptime number and gather seat numbers in an array, along with other details
+      const seatGroupBypickuptime = seats.reduce((acc, seat) => {
+        if (!acc[seat.pickuptime]) {
+          acc[seat.pickuptime] = {
+            seatNumbers: [],
+            pickup: seat.pickup,
+          };
+        }
+
+        // Group seat numbers in an array
+        acc[seat.pickuptime].seatNumbers.push(seat.seatNumber);
+
+        return acc;
+      }, {});
+
+      // Convert the grouped object into an array
+      let response = Object.values(seatGroupBypickuptime);
+
+      // Sort the array by pickuptime in ascending order
+      response = response.sort((a, b) => a.pickuptime - b.pickuptime);
+
+      return res.status(200).json(response);
+    } else {
+      // If no date provided, find all seats for the given route
+      const seats = await SeatModel.find({ route });
+
+      // Group by pickuptime number and gather seat numbers in an array, along with other details
+      const seatGroupBypickuptime = seats.reduce((acc, seat) => {
+        if (!acc[seat.pickuptime]) {
+          acc[seat.pickuptime] = {
+            pickuptime: seat.pickuptime,
+            seatNumbers: [],
+            extradetails: seat.extradetails, // include any extra details from the seat
+            name: seat.name, // include name or any other details
+          };
+        }
+
+        // Group seat numbers in an array
+        acc[seat.pickuptime].seatNumbers.push(seat.seatNumber);
+
+        return acc;
+      }, {});
+
+      // Convert the grouped object into an array
+      let response = Object.values(seatGroupBypickuptime);
+
+      // Sort the array by pickuptime in ascending order
+      response = response.sort((a, b) => a.pickuptime - b.pickuptime);
+
+      return res.status(200).json(response);
+    }
+  } catch (error) {
+    console.error("Server error:", error); // Log the full error for debugging
+    return res.status(500).json({ error: "Server error: " + error.message });
+  }
+}
+
 module.exports = {
   getsearchAll,
   getsearchBus,
   getsearchAllByseat,
   getsearchRouteByvillage,
+  getsearchRouteBymobile,
   ticketsearch,
+  getchartprint,
 };
