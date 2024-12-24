@@ -643,6 +643,15 @@ async function getsearchRouteBymobile(req, res) {
             seatNumbers: [],
             extradetails: seat.extradetails, // include any extra details from the seat
             name: seat.name, // include name or any other details
+            date: seat.date,
+            from: seat.from,
+            to: seat.to,
+            pickup: seat.pickup,
+            drop: seat.drop,
+            gender: seat.gender,
+            price: seat.price,
+            age: seat.age,
+            extradetails: seat.extradetails,
           };
         }
 

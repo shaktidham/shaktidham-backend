@@ -2,40 +2,88 @@ const SeatModel = require("../models/bookedseat");
 const routeInfo = require("../models/routeinfo");
 const { translate } = require("@vitalets/google-translate-api");
 
+
 // async function allocateSeats(req, res) {
 //   try {
-//     const { seatNumber, name, from,to,pickup,drop,gender,age, mobile, date } = req.body; // Notice the change here
+//     const {
+//       seatNumber,
+//       name,
+//       from,
+//       to,
+//       pickup,
+//       drop,
+//       gender,
+//       age,
+//       mobile,
+//       price,
+//       date,
+//       extradetails,
+//     } = req.body;
+
+//     // Check if seatNumber is provided and is a valid string or array
+//     if (
+//       !seatNumber ||
+//       (typeof seatNumber !== "string" && !Array.isArray(seatNumber))
+//     ) {
+//       return res.status(400).json({
+//         message:
+//           "seatNumber must be provided and be either a string or an array.",
+//       });
+//     }
+
+//     // If seatNumber is a string, split it into an array
+//     const seatArray = Array.isArray(seatNumber)
+//       ? seatNumber
+//       : seatNumber.split(",");
+
 //     const existingRoute = await routeInfo.findById(req.params.id);
 
 //     if (!existingRoute) {
-//       return res.status(404).json({ message: 'Route not found' });
+//       return res.status(404).json({ message: "Route not found" });
 //     }
 
-//     // If seatNumber is a string, split it into an array (assuming format "A,B,1,2")
-//     const seatArray = Array.isArray(seatNumber) ? seatNumber : seatNumber.split(',');
+//     // Check for existing seat allocations on the same date and route
+//     const existingAllocations = await SeatModel.find({
+//       route: existingRoute._id,
+//       date: date,
+//       seatNumber: { $in: seatArray?.map((seat) => seat.trim()) }, // Trim and match
+//     });
 
+//     if (existingAllocations.length > 0) {
+//       return res.status(400).json({
+//         message:
+//           "Some or all of the requested seats are already allocated for the selected date.",
+//       });
+//     }
+
+//     // Allocate seats
 //     const allocatedSeats = [];
 //     for (const seatNumber of seatArray) {
-//       // Create a seat for each seat number
+//       // Here, seatNumber corresponds to each individual seat from seatNumber array
 //       const currentSeat = await SeatModel.create({
 //         name: name,
-//         from:from,
-//         to:to,
-//         pickup:pickup,
-//         drop:drop,
-//         age:age,
-//         gender:gender,
+//         from: from,
+//         to: to,
+//         pickup: pickup,
+//         price: price,
+//         drop: drop,
+//         age: age,
+//         gender: gender,
 //         mobile: mobile,
+//         extradetails: extradetails,
 //         date: date,
-//         seatNumber: seatNumber.trim(), // Trim any extra whitespace
-//         route: existingRoute._id
+//         seatNumber: seatNumber.trim(), // Trim any extra whitespace for consistency
+//         route: existingRoute._id, // Associate with the existing route
 //       });
 //       allocatedSeats.push(currentSeat);
 //     }
 
+//     // Return the allocated seat data
 //     res.status(201).json({ data: allocatedSeats });
 //   } catch (error) {
-//     res.status(500).json({ message: `Error while allocating seats: ${error.message}` });
+//     res
+//       .status(500)
+//       .json({ message: `Error while allocating seats: ${error.message}` });
 //   }
 // }
 async function allocateSeats(req, res) {
@@ -52,8 +100,6 @@ async function allocateSeats(req, res) {
       mobile,
       price,
       date,
-      totime,
-      pickuptime,
       extradetails,
     } = req.body;
 
@@ -79,6 +125,31 @@ async function allocateSeats(req, res) {
       return res.status(404).json({ message: "Route not found" });
     }
 
+    // Function to find time based on pointName in 'from' or 'to' arrays
+    function findTimeForPoint(pointName, direction) {
+      // Iterate through 'from' or 'to' to find matching pointName
+      const pointsArray = existingRoute[direction];
+      for (let village of pointsArray) {
+        for (let point of village.point) {
+          if (point.pointName === pointName) {
+            return point.time; // Return the time when pointName matches
+          }
+        }
+      }
+      return null; // Return null if no matching pointName found
+    }
+
+    // Find pickupTime and dropTime based on provided point names
+    const pickupTime = findTimeForPoint(pickup, "from"); // Get time for pickup from 'from' array
+    const dropTime = findTimeForPoint(drop, "to"); // Get time for drop from 'to' array
+console.log(pickupTime,"pickupTime");
+    if (!pickupTime) {
+      return res.status(400).json({ message: "Pickup point not found" });
+    }
+    if (!dropTime) {
+      return res.status(400).json({ message: "Drop point not found" });
+    }
+
     // Check for existing seat allocations on the same date and route
     const existingAllocations = await SeatModel.find({
       route: existingRoute._id,
@@ -102,8 +173,6 @@ async function allocateSeats(req, res) {
         from: from,
         to: to,
         pickup: pickup,
-        pickuptime: pickuptime,
-        totime: totime,
         price: price,
         drop: drop,
         age: age,
@@ -113,6 +182,8 @@ async function allocateSeats(req, res) {
         date: date,
         seatNumber: seatNumber.trim(), // Trim any extra whitespace for consistency
         route: existingRoute._id, // Associate with the existing route
+        pickuptime: pickupTime, // Save pickup time
+        droptime: dropTime, // Save drop time
       });
       allocatedSeats.push(currentSeat);
     }
@@ -125,6 +196,7 @@ async function allocateSeats(req, res) {
       .json({ message: `Error while allocating seats: ${error.message}` });
   }
 }
+
 
 async function allseats(req, res) {
   try {

@@ -6,7 +6,7 @@ async function routeDetails(req, res) {
     const {
       date,
       fromtime,
-      totime,
+      droptime,
       to,
       from, // This is the array of villages in the request body
       price,
@@ -65,7 +65,7 @@ async function routeDetails(req, res) {
       const busDetail = await Businfo.create({
         date: new Date(currentDate), // Set the current date in the loop
         fromtime,
-        totime,
+        droptime,
         Busname,
         from: updatedFrom,
         to: updatedTo,
@@ -148,7 +148,7 @@ async function routeupdate(req, res) {
     const {
       date,
       fromtime,
-      totime,
+      droptime,
       to,
       from,
       price,
@@ -164,7 +164,7 @@ async function routeupdate(req, res) {
     if (
       !date ||
       !fromtime ||
-      !totime ||
+      !droptime ||
       !from ||
       !to ||
       !Busname ||
@@ -210,7 +210,7 @@ async function routeupdate(req, res) {
       req.params.id, // Find the bus details using the ID passed in the URL parameters
       {
         fromtime,
-        totime,
+        droptime,
         date,
         from: updatedFrom,
         to: updatedTo,

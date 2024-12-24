@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const RouteinfoSchema = new mongoose.Schema(
   {
     fromtime: { type: String },
-    totime: { type: String },
+    droptime: { type: String },
     first: { type: String },
     last: { type: String },
     Busname: { type: String },
