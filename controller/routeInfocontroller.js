@@ -162,18 +162,8 @@ async function routeupdate(req, res) {
 
     // Validate required fields
     if (
-      !date ||
-      !fromtime ||
-      !droptime ||
-      !from ||
-      !to ||
-      !Busname ||
-      !price ||
-      !first ||
-      !last ||
-      !location ||
-      !driver ||
-      !cabinprice
+      !date 
+   
     ) {
       return res
         .status(400)
