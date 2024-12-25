@@ -142,13 +142,13 @@ async function allocateSeats(req, res) {
     // Find pickupTime and dropTime based on provided point names
     const pickupTime = findTimeForPoint(pickup, "from"); // Get time for pickup from 'from' array
     const dropTime = findTimeForPoint(drop, "to"); // Get time for drop from 'to' array
-console.log(pickupTime,"pickupTime");
+
     if (!pickupTime) {
       return res.status(400).json({ message: "Pickup point not found" });
     }
-    if (!dropTime) {
-      return res.status(400).json({ message: "Drop point not found" });
-    }
+    // if (!dropTime) {
+    //   return res.status(400).json({ message: "Drop point not found" });
+    // }
 
     // Check for existing seat allocations on the same date and route
     const existingAllocations = await SeatModel.find({
