@@ -576,19 +576,14 @@ async function getsearchRouteBymobile(req, res) {
   try {
     const { date: dateStr, route } = req.query;
 
-    if (!route) {
-      return res.status(400).json({ error: "Route is required." });
-    }
-
-    if (dateStr) {
+    // If a route is provided and a date is provided
+    if (route && dateStr) {
       // Reformat the date string from YYYY/MM/DD to YYYY-MM-DD
-      const formattedDateStr = dateStr.replace(/\//g, "-"); // Replace all slashes with hyphens
+      const formattedDateStr = dateStr.replace(/\//g, "-");
       const dateValue = new Date(formattedDateStr);
 
       if (isNaN(dateValue)) {
-        return res
-          .status(400)
-          .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+        return res.status(400).json({ error: "Invalid date format. Please use YYYY-MM-DD." });
       }
 
       // Create start of the day (midnight) and end of the day (just before the next midnight)
@@ -601,14 +596,14 @@ async function getsearchRouteBymobile(req, res) {
         date: { $gte: startOfDay, $lte: endOfDay },
       });
 
-      // Group by mobile number and gather seat numbers in an array, along with other details
+      // Group by mobile number for the specified route
       const seatGroupByMobile = seats.reduce((acc, seat) => {
         if (!acc[seat.mobile]) {
           acc[seat.mobile] = {
             mobile: seat.mobile,
             seatNumbers: [],
-            extradetails: seat.extradetails, // include any extra details from the seat
-            name: seat.name, // include name or any other details
+            extradetails: seat.extradetails,
+            name: seat.name,
             date: seat.date,
             from: seat.from,
             to: seat.to,
@@ -617,42 +612,7 @@ async function getsearchRouteBymobile(req, res) {
             gender: seat.gender,
             price: seat.price,
             age: seat.age,
-            extradetails: seat.extradetails,
-          };
-        }
-
-        // Group seat numbers in an array
-        acc[seat.mobile].seatNumbers.push(seat.seatNumber);
-
-        return acc;
-      }, {});
-
-      // Convert the grouped object into an array for the response
-      const response = Object.values(seatGroupByMobile);
-
-      return res.status(200).json(response);
-    } else {
-      // If no date provided, find all seats for the given route
-      const seats = await SeatModel.find({ route });
-
-      // Group by mobile number and gather seat numbers in an array, along with other details
-      const seatGroupByMobile = seats.reduce((acc, seat) => {
-        if (!acc[seat.mobile]) {
-          acc[seat.mobile] = {
-            mobile: seat.mobile,
-            seatNumbers: [],
-            extradetails: seat.extradetails, // include any extra details from the seat
-            name: seat.name, // include name or any other details
-            date: seat.date,
-            from: seat.from,
-            to: seat.to,
-            pickup: seat.pickup,
-            drop: seat.drop,
-            gender: seat.gender,
-            price: seat.price,
-            age: seat.age,
-            id:seat._id,
-            extradetails: seat.extradetails,
+            id: seat._id,
           };
         }
 
@@ -667,11 +627,115 @@ async function getsearchRouteBymobile(req, res) {
 
       return res.status(200).json(response);
     }
+
+    // If no specific route is provided, we need to return data for all routes and potentially filter by date
+    if (!route && dateStr) {
+      // Reformat the date string from YYYY/MM/DD to YYYY-MM-DD
+      const formattedDateStr = dateStr.replace(/\//g, "-");
+      const dateValue = new Date(formattedDateStr);
+
+      if (isNaN(dateValue)) {
+        return res.status(400).json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+      }
+
+      // Create start of the day (midnight) and end of the day (just before the next midnight)
+      const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
+
+      // Query for all seats within the date range
+      const seats = await SeatModel.find({
+        date: { $gte: startOfDay, $lte: endOfDay },
+      });
+
+      // Group the seats by route and then by mobile number
+      const seatGroupByRoute = seats.reduce((acc, seat) => {
+        if (!acc[seat.route]) {
+          acc[seat.route] = {};
+        }
+
+        if (!acc[seat.route][seat.mobile]) {
+          acc[seat.route][seat.mobile] = {
+            mobile: seat.mobile,
+            seatNumbers: [],
+            extradetails: seat.extradetails,
+            name: seat.name,
+            date: seat.date,
+            from: seat.from,
+            to: seat.to,
+            pickup: seat.pickup,
+            drop: seat.drop,
+            gender: seat.gender,
+            price: seat.price,
+            age: seat.age,
+            id: seat._id,
+          };
+        }
+
+        // Group seat numbers by mobile within each route
+        acc[seat.route][seat.mobile].seatNumbers.push(seat.seatNumber);
+
+        return acc;
+      }, {});
+
+      // Convert the grouped object into an array for the response
+      const response = Object.keys(seatGroupByRoute).map(routeId => ({
+        route: routeId,
+        passengers: Object.values(seatGroupByRoute[routeId]),
+      }));
+
+      return res.status(200).json(response);
+    }
+
+    // If no date and no route are provided, return all seats grouped by route
+    if (!route && !dateStr) {
+      const seats = await SeatModel.find();
+
+      // Group by route and then by mobile number, gathering seat numbers and other details
+      const seatGroupByRoute = seats.reduce((acc, seat) => {
+        if (!acc[seat.route]) {
+          acc[seat.route] = {};
+        }
+
+        if (!acc[seat.route][seat.mobile]) {
+          acc[seat.route][seat.mobile] = {
+            mobile: seat.mobile,
+            seatNumbers: [],
+            extradetails: seat.extradetails,
+            name: seat.name,
+            date: seat.date,
+            from: seat.from,
+            to: seat.to,
+            pickup: seat.pickup,
+            drop: seat.drop,
+            gender: seat.gender,
+            price: seat.price,
+            age: seat.age,
+            id: seat._id,
+          };
+        }
+
+        // Group seat numbers by mobile within each route
+        acc[seat.route][seat.mobile].seatNumbers.push(seat.seatNumber);
+
+        return acc;
+      }, {});
+
+      // Convert the grouped object into an array for the response
+      const response = Object.keys(seatGroupByRoute).map(routeId => ({
+        route: routeId,
+        passengers: Object.values(seatGroupByRoute[routeId]),
+      }));
+
+      return res.status(200).json(response);
+    }
+
   } catch (error) {
     console.error("Server error:", error); // Log the full error for debugging
     return res.status(500).json({ error: "Server error: " + error.message });
   }
 }
+
+
 
 // async function getchartprint(req, res) {
 //   try {
