@@ -711,6 +711,7 @@ async function getSeatsByDate(req, res) {
         pickup: seat.pickup,
         drop: seat.drop,
         gender: seat.gender,
+        pickuptime:seat.pickuptime,
         price: seat.price,
         age: seat.age,
         id: seat._id,
