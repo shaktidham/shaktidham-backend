@@ -143,9 +143,9 @@ async function allocateSeats(req, res) {
     const pickupTime = findTimeForPoint(pickup, "from"); // Get time for pickup from 'from' array
     const dropTime = findTimeForPoint(drop, "to"); // Get time for drop from 'to' array
 
-    if (!pickupTime) {
-      return res.status(400).json({ message: "Pickup point not found" });
-    }
+    // if (!pickupTime) {
+    //   return res.status(400).json({ message: "Pickup point not found" });
+    // }
     // if (!dropTime) {
     //   return res.status(400).json({ message: "Drop point not found" });
     // }
