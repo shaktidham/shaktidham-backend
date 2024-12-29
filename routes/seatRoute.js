@@ -12,6 +12,7 @@ const {
   ticketsearch,
   getchartprint,
   getSeatsByDate,
+  getSeatsByMobile,
 } = require("../controller/searchController");
 // const {  } = require('../controllers/');
 
@@ -23,8 +24,9 @@ router.get("/read", allseats);
 router.put("/update/:id", updateseat);
 router.delete("/delete/:id", deleteseat);
 router.get("/search", getsearchAll);
-router.get("/searchbymobile", getSeatsByDate);
+router.get("/searchbyseats", getSeatsByDate);
 router.get("/searchbyallseat", getsearchAllByseat);
 router.post("/searchTicket", ticketsearch);
 router.get("/getchartprint", getchartprint);
+router.get("/getseatsByMobile", getSeatsByMobile);
 module.exports = router;

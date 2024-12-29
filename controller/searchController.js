@@ -572,85 +572,7 @@ const ticketsearch = async (req, res) => {
   }
 };
 
-// async function getSeatsByDate(req, res) {
-//   try {
-//     const { date } = req.query;
 
-//     // Check if date is provided
-//     if (!date) {
-//       return res.status(400).json({ error: "Date parameter is required" });
-//     }
-
-//     // Parse the date and set the time for start and end of the day
-//     const dateValue = new Date(date);
-//     const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0)); // Start of the day
-//     const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999)); // End of the day
-
-//     // Query the database for seats within the date range (start and end of day)
-//     const seats = await SeatModel.find({
-//       date: { $gte: startOfDay, $lte: endOfDay }, // Date range query
-//     });
-
-//     // If no seats are found, find the matching routes based on the date
-//     if (seats.length === 0) {
-//       const routes = await Routeinfo.find({
-//         date: { $gte: startOfDay, $lte: endOfDay },
-//       }).select("_id Busname");
-
-//       // If no routes are found for the given date, return empty response or message
-//       if (routes.length === 0) {
-//         return res.status(200).json({ message: "No routes available for the given date" });
-//       }
-
-//       // Return the routes with empty passengers array
-//       const response = routes.map(route => ({
-//         route: route._id,
-//         passengers: [], // Empty passengers array
-//       }));
-
-//       return res.status(200).json(response);
-//     }
-
-//     // Group seats by route
-//     const groupedSeats = seats.reduce((acc, seat) => {
-//       if (!acc[seat.route]) {
-//         acc[seat.route] = []; // Initialize array for each route
-//       }
-
-//       // Push the passenger details for each route
-//       acc[seat.route].push({
-//         route: seat.route,
-//         date: seat.date,
-//         name: seat.name,
-//         mobile: seat.mobile,
-//         seatNumber: seat.seatNumber,
-//         extradetails: seat.extradetails,
-//         from: seat.from,
-//         to: seat.to,
-//         pickup: seat.pickup,
-//         drop: seat.drop,
-//         gender: seat.gender,
-//         price: seat.price,
-//         age: seat.age,
-//         id: seat._id,
-//       });
-
-//       return acc;
-//     }, {});
-
-//     // Format the grouped data into an array of objects (one per route)
-//     const response = Object.keys(groupedSeats).map(route => ({
-//       route: route,
-//       passengers: groupedSeats[route], // List of passengers for that route
-//     }));
-
-//     // Send the response
-//     return res.status(200).json(response);
-//   } catch (error) {
-//     console.error("Server error:", error);
-//     return res.status(500).json({ error: "Server error: " + error.message });
-//   }
-// }
 async function getSeatsByDate(req, res) {
   try {
     const { date } = req.query;
@@ -670,26 +592,14 @@ async function getSeatsByDate(req, res) {
       date: { $gte: startOfDay, $lte: endOfDay }, // Date range query
     });
 
-    // If no seats are found, find the matching routes based on the date
-    if (seats.length === 0) {
-      // Query for routes that match the date range, but without filtering by route
-      const routes = await Routeinfo.find({
-        date: { $gte: startOfDay, $lte: endOfDay },
-      }).select("_id Busname");
+    // Query for routes that match the date range
+    const routes = await Routeinfo.find({
+      date: { $gte: startOfDay, $lte: endOfDay },
+    }).select("_id Busname date driver price location");
 
-      // If no routes are found for the given date, return empty response or message
-      if (routes.length === 0) {
-        return res.status(200).json({ message: "No routes available for the given date" });
-      }
-
-      // Return the routes with empty passengers array
-      const response = routes.map(route => ({
-        route: route._id,
-        busName: route.Busname,
-        passengers: [], // Empty passengers array
-      }));
-
-      return res.status(200).json(response);
+    // If no routes are found for the given date, return a message
+    if (routes.length === 0) {
+      return res.status(200).json({ message: "No routes available for the given date" });
     }
 
     // Group seats by route
@@ -711,7 +621,7 @@ async function getSeatsByDate(req, res) {
         pickup: seat.pickup,
         drop: seat.drop,
         gender: seat.gender,
-        pickuptime:seat.pickuptime,
+        pickuptime: seat.pickuptime,
         price: seat.price,
         age: seat.age,
         id: seat._id,
@@ -720,13 +630,18 @@ async function getSeatsByDate(req, res) {
       return acc;
     }, {});
 
-    // For each route in the grouped seats, fetch the busName from Routeinfo
-    const response = await Promise.all(Object.keys(groupedSeats).map(async route => {
-      const routeInfo = await Routeinfo.findOne({ _id: route }).select("Busname");
+    // Prepare the response for all routes, whether they have passengers or not
+    const response = await Promise.all(routes.map(async (route) => {
+      const passengers = groupedSeats[route._id] || []; // If no passengers, return empty array
+
       return {
-        route: route,
-        busName: routeInfo ? routeInfo.Busname : "Unknown",
-        passengers: groupedSeats[route], // List of passengers for that route
+        route: route._id,
+        busName: route.Busname,
+        date: route.date,
+        price: route.price,
+        location: route.location,
+        driver: route.driver,
+        passengers: passengers, // Include the passengers (empty or not)
       };
     }));
 
@@ -737,11 +652,6 @@ async function getSeatsByDate(req, res) {
     return res.status(500).json({ error: "Server error: " + error.message });
   }
 }
-
-
-
-
-
 
 
 async function getchartprint(req, res) {
@@ -796,6 +706,91 @@ function parseTimeToMinutes(time) {
   return hours * 60 + minutes;
 }
 
+async function getSeatsByMobile(req, res) {
+  try {
+    const { date } = req.query;
+
+    // Check if date is provided
+    if (!date) {
+      return res.status(400).json({ error: "Date parameter is required" });
+    }
+
+    // Parse the date and set the time for start and end of the day
+    const dateValue = new Date(date.split('/').reverse().join('-')); // Convert DD/MM/YYYY to Date format
+    const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0)); // Start of the day
+    const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999)); // End of the day
+
+    // Query the database for seats within the date range (start and end of day)
+    const seats = await SeatModel.find({
+      date: { $gte: startOfDay, $lte: endOfDay }, // Date range query
+    });
+
+    // If no seats are found, find the matching routes based on the date
+    if (seats.length === 0) {
+      // Query for routes that match the date range, but without filtering by route
+      const routes = await Routeinfo.find({
+        date: { $gte: startOfDay, $lte: endOfDay },
+      }).select("_id from to pickup pickuptime");
+
+      // If no routes are found for the given date, return empty response or message
+      if (routes.length === 0) {
+        return res.status(200).json({ message: "No routes available for the given date" });
+      }
+
+      // Return the routes with empty passengers array
+      const response = routes.map(route => ({
+        route: route._id,
+        passengers: [], // Empty passengers array
+        from: route.from,
+        to: route.to,
+        pickup: route.pickup,
+        pickuptime: route.pickuptime,
+      }));
+
+      return res.status(200).json(response);
+    }
+
+    // Group seats by mobile number and route, then collect seat numbers
+    const groupedSeats = seats.reduce((acc, seat) => {
+      const key = `${seat.mobile}-${seat.route}`; // Group by mobile number, from, and to (route info)
+
+      if (!acc[key]) {
+        acc[key] = {
+          mobile: seat.mobile,
+          route: `${seat.route}`,
+          seatNumbers: [],
+          pickuptime: seat.pickuptime, // Assuming `pickuptime` is available in SeatModel
+          pickup: seat.pickup, // Assuming `pickup` is available in SeatModel
+        }; // Initialize group
+      }
+
+      // Push the seat number into the array for this group
+      acc[key].seatNumbers.push(seat.seatNumber);
+
+      return acc;
+    }, {});
+
+    // Prepare response based on the grouped data
+    const response = Object.values(groupedSeats).map(group => ({
+      mobile: group.mobile,
+      route: group.route,
+      seatNumbers: group.seatNumbers, // Array of seat numbers
+      pickuptime: group.pickuptime,   // Pickup time
+      pickup: group.pickup,           // Pickup location
+      from: group.from,               // From location (assuming available from Routeinfo)
+      to: group.to,                   // To location (assuming available from Routeinfo)
+    }));
+
+    // Send the response
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Server error:", error);
+    return res.status(500).json({ error: "Server error: " + error.message });
+  }
+}
+
+
+
 
 
 
@@ -808,4 +803,5 @@ module.exports = {
   getSeatsByDate,
   ticketsearch,
   getchartprint,
+  getSeatsByMobile
 };
