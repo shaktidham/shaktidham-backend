@@ -13,6 +13,7 @@ const RouteinfoSchema = new mongoose.Schema(
     location: { type: String },
     driver: { type: String },
     cabinprice: { type: Number },
+    code: { type: String },
 
     from: [
       {

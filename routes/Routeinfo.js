@@ -13,7 +13,7 @@ const { getsearchBus } = require("../controller/searchController");
 const router = express.Router();
 
 router.post("/create", routeDetails);
-router.put("/update/:id", routeupdate);
+router.put("/update", routeupdate);
 router.get("/read", routeread);
 router.delete("/delete/:id", routedelete);
 router.get("/searchbyvillage", getsearchRouteByvillage);

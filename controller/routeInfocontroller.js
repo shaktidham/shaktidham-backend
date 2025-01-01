@@ -17,8 +17,9 @@ async function routeDetails(req, res) {
       driver,
       cabinprice,
       enddate,
+      
     } = req.body;
-
+const code=`${last}-${date}`;
     // Convert the date strings to Date objects
     const startDate = new Date(date); // Start date
     const endDate = new Date(enddate); // End date
@@ -75,6 +76,7 @@ async function routeDetails(req, res) {
         location,
         driver,
         cabinprice,
+        code,
       });
 
       busDetails.push(busDetail); // Add the created bus detail to the array
@@ -169,12 +171,8 @@ async function routeupdate(req, res) {
     } = req.body;
 
     // Validate required fields
-    if (
-      !date
-    ) {
-      return res
-        .status(400)
-        .json({ message: "All required fields must be provided" });
+    if (!date) {
+      return res.status(400).json({ message: "All required fields must be provided" });
     }
 
     // Fetch village data for 'from' and 'to' arrays (combine both arrays for one query)
@@ -202,13 +200,29 @@ async function routeupdate(req, res) {
     const updatedFrom = updateVillages(from);
     const updatedTo = updateVillages(to);
 
-    // Find the bus info by ID and update the document
-    const busDetails = await Businfo.findByIdAndUpdate(
-      req.params.id, // Find the bus details using the ID passed in the URL parameters
+    // Get the codes from query or use id if codes are not provided
+    const codes = req.query.codes ? req.query.codes.split(',') : [];
+    const id = req.query.id;
+
+    if (codes.length === 0 && !id) {
+      return res.status(400).json({ message: "Bus codes or id are required" });
+    }
+
+    // Define the filter for the update operation
+    let filter = {};
+    if (codes.length > 0) {
+      filter.code = { $in: codes };
+    } else if (id) {
+      filter._id = id;  // If id is provided, search by _id
+    }
+
+    // Find and update bus details by code or id
+    const busDetails = await Businfo.updateMany(
+      filter,  // The dynamic filter based on provided codes or id
       {
         fromtime,
         droptime,
-        date,
+       
         from: updatedFrom,
         to: updatedTo,
         Busname,
@@ -219,23 +233,24 @@ async function routeupdate(req, res) {
         driver,
         cabinprice,
       },
-      { new: true } // This option returns the updated document
+      { new: true } // Option to return the updated document
     );
 
-    // If no document is found with the given ID
-    if (!busDetails) {
-      return res.status(404).json({ message: "Bus details not found" });
+    // If no buses were updated
+    if (busDetails.nModified === 0) {
+      return res.status(404).json({ message: "No bus details found for the provided codes or id" });
     }
 
     // Send the updated bus details back to the client
-    res.status(200).json({ data: busDetails });
+    res.status(200).json({ message: "Bus details updated successfully", data: busDetails });
   } catch (error) {
     // Catch any other errors and send a generic error message
-    console.error("Error while updating bus details: ", error);
-    res
-      .status(500)
-      .json({ message: `Error while updating bus details: ${error.message}` });
+    res.status(500).json({ message: `Error while updating bus details: ${error.message}` });
   }
 }
+
+
+
+
 
 module.exports = { routeDetails, routeupdate, routeread, routedelete };
