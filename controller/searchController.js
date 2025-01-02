@@ -594,7 +594,7 @@ async function getSeatsByDate(req, res) {
     // Query for routes that match the date range
     const routes = await Routeinfo.find({
       date: { $gte: startOfDay, $lte: endOfDay },
-    }).select("_id Busname date driver price cabinprice location");
+    }).select("_id Busname date driver price cabinprice location last");
 
     // If no routes are found for the given date, return a message
     if (routes.length === 0) {
@@ -636,6 +636,7 @@ async function getSeatsByDate(req, res) {
       return {
         route: route._id,
         busName: route.Busname,
+        last:route.last,
         date: route.date,
         price: route.price,
         cabinprice: route.cabinprice, // Ensure cabinprice is included here
