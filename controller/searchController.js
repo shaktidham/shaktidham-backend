@@ -598,7 +598,9 @@ async function getSeatsByDate(req, res) {
 
     // If no routes are found for the given date, return a message
     if (routes.length === 0) {
-      return res.status(200).json({ message: "No routes available for the given date" });
+      return res
+        .status(200)
+        .json({ message: "No routes available for the given date" });
     }
 
     // Group seats by route
@@ -630,21 +632,23 @@ async function getSeatsByDate(req, res) {
     }, {});
 
     // Prepare the response for all routes, including cabinprice
-    const response = await Promise.all(routes.map(async (route) => {
-      const passengers = groupedSeats[route._id] || []; // If no passengers, return empty array
+    const response = await Promise.all(
+      routes.map(async (route) => {
+        const passengers = groupedSeats[route._id] || []; // If no passengers, return empty array
 
-      return {
-        route: route._id,
-        busName: route.Busname,
-        last:route.last,
-        date: route.date,
-        price: route.price,
-        cabinprice: route.cabinprice, // Ensure cabinprice is included here
-        location: route.location,
-        driver: route.driver,
-        passengers: passengers, // Include the passengers (empty or not)
-      };
-    }));
+        return {
+          route: route._id,
+          busName: route.Busname,
+          last: route.last,
+          date: route.date,
+          price: route.price,
+          cabinprice: route.cabinprice, // Ensure cabinprice is included here
+          location: route.location,
+          driver: route.driver,
+          passengers: passengers, // Include the passengers (empty or not)
+        };
+      })
+    );
 
     // Send the response
     return res.status(200).json(response);
@@ -653,8 +657,6 @@ async function getSeatsByDate(req, res) {
     return res.status(500).json({ error: "Server error: " + error.message });
   }
 }
-
-
 
 async function getchartprint(req, res) {
   try {
@@ -700,7 +702,7 @@ function parseTimeToMinutes(time) {
     return Infinity;
   }
 
-  const [hours, minutes] = time.split(':').map(Number);
+  const [hours, minutes] = time.split(":").map(Number);
   if (isNaN(hours) || isNaN(minutes)) {
     return Infinity;
   }
@@ -717,135 +719,48 @@ function parseTimeToMinutes(time) {
 //       return res.status(400).json({ error: "Date parameter is required" });
 //     }
 
-//     // Parse the date and set the time for start and end of the day
+//     // Parse the date and set the time for start and end of day
 //     const dateValue = new Date(date.split('/').reverse().join('-')); // Convert DD/MM/YYYY to Date format
 //     const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0)); // Start of the day
 //     const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999)); // End of the day
 
 //     // Query the database for seats within the date range (start and end of day)
-//     const seats = await SeatModel.find({
-//       date: { $gte: startOfDay, $lte: endOfDay }, // Date range query
-//     });
-
-//     // If no seats are found, find the matching routes based on the date
-//     if (seats.length === 0) {
-//       // Query for routes that match the date range, but without filtering by route
-//       const routes = await Routeinfo.find({
-//         date: { $gte: startOfDay, $lte: endOfDay },
-//       }).select("_id from to pickup pickuptime");
-
-//       // If no routes are found for the given date, return empty response or message
-//       if (routes.length === 0) {
-//         return res.status(200).json({ message: "No routes available for the given date" });
-//       }
-
-//       // Return the routes with empty passengers array
-//       const response = routes.map(route => ({
-//         route: route._id,
-//         passengers: [], // Empty passengers array
-//         from: route.from,
-//         to: route.to,
-//         pickup: route.pickup,
-//         pickuptime: route.pickuptime,
-//       }));
-
-//       return res.status(200).json(response);
-//     }
-
-//     // Group seats by mobile number and route, then collect seat numbers
-//     const groupedSeats = seats.reduce((acc, seat) => {
-//       const key = `${seat.mobile}-${seat.route}`; // Group by mobile number, from, and to (route info)
-
-//       if (!acc[key]) {
-//         acc[key] = {
-//           mobile: seat.mobile,
-//           route: `${seat.route}`,
-//           seatNumbers: [],
-//           pickuptime: seat.pickuptime, // Assuming `pickuptime` is available in SeatModel
-//           pickup: seat.pickup, // Assuming `pickup` is available in SeatModel
-//           from: seat.from,
-//           to: seat.to,
-//         }; // Initialize group
-//       }
-
-//       // Push the seat number into the array for this group
-//       acc[key].seatNumbers.push(seat.seatNumber);
-
-//       return acc;
-//     }, {});
-
-//     // Prepare response based on the grouped data
-//     const response = Object.values(groupedSeats).map(group => ({
-//       mobile: group.mobile,
-//       route: group.route,
-//       seatNumbers: group.seatNumbers, // Array of seat numbers
-//       pickuptime: group.pickuptime,   // Pickup time
-//       pickup: group.pickup,           // Pickup location
-//       from: group.from,               // From location (assuming available from Routeinfo)
-//       to: group.to,                   // To location (assuming available from Routeinfo)
-//     }));
-
-//     // Send the response
-//     return res.status(200).json(response);
-//   } catch (error) {
-//     console.error("Server error:", error);
-//     return res.status(500).json({ error: "Server error: " + error.message });
-//   }
-// }
-
-
-
-// async function getSeatsByMobile(req, res) {  
-//   try {    
-//     const { date } = req.query;      
-
-//     // Check if date is provided    
-//     if (!date) {      
-//       return res.status(400).json({ error: "Date parameter is required" });    
-//     }      
-
-//     // Parse the date and set the time for start and end of day    
-//     const dateValue = new Date(date.split('/').reverse().join('-')); // Convert DD/MM/YYYY to Date format    
-//     const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0)); // Start of the day    
-//     const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999)); // End of the day      
-
-//     // Query the database for seats within the date range (start and end of day)    
-//     const seats = await SeatModel.aggregate([      
-//       {        
-//         $match: {          
-//           date: { $gte: startOfDay, $lte: endOfDay }, // Date range query        
-//         },      
-//       },      
-//       {        
-//         $group: {          
-//           _id: { mobile: "$mobile", route: "$route" }, // Group by mobile number and route          
-//           seatNumbersArray: { $push: "$seatNumber" }, // Collect all seat numbers for the group          
-//           pickuptime: { $first: "$pickuptime" }, // Assuming pickuptime is in SeatModel          
-//           pickup: { $first: "$pickup" }, // Pickup location          
-//           from: { $first: "$from" }, // From location          
-//           to: { $first: "$to" }, // To location        
-//         },      
-//       },      
-//       {        
-//         $project: {          
-//           mobile: "$_id.mobile",          
-//           route: "$_id.route",          
-//           seatNumbersArray: 1,          
-//           pickuptime: 1,          
-//           pickup: 1,              
-//           from: 1,              
-//           to: 1,                  
-//           // Calculate cabinCount using a regex to filter "કેબિન" entries          
-//           cabinCount: {            
-//             $size: {              
-//               $filter: {                
-//                 input: "$seatNumbersArray",                
-//                 as: "seat",                
-//                 cond: { $regexMatch: { input: "$$seat", regex: /^કેબિન/ } },              
-//               },            
-//             },          
-//           },          
-//           // Calculate seatCount by counting each seat, excluding "કેબિન" seats          
+//     const seats = await SeatModel.aggregate([
+//       {
+//         $match: {
+//           date: { $gte: startOfDay, $lte: endOfDay }, // Date range query
+//         },
+//       },
+//       {
+//         $group: {
+//           _id: { mobile: "$mobile", route: "$route" }, // Group by mobile number and route
+//           seatNumbersArray: { $push: "$seatNumber" }, // Collect all seat numbers for the group
+//           pickuptimeArray: { $push: "$pickuptime" }, // Collect all pickuptime for the group
+//           pickupArray: { $push: "$pickup" }, // Collect all pickup locations for the group
+//           from: { $first: "$from" }, // From location (since it’s the same for the same route)
+//           to: { $first: "$to" }, // To location (same as above)
+//         },
+//       },
+//       {
+//         $project: {
+//           mobile: "$_id.mobile",
+//           route: "$_id.route",
+//           seatNumbers: "$seatNumbersArray", // Array of seat numbers
+//           pickuptime: "$pickuptimeArray", // Array of pickuptime
+//           pickup: "$pickupArray", // Array of pickup locations
+//           from: 1,
+//           to: 1,
+//           // Calculate cabinCount using a regex to filter "કેબિન" entries
+//           cabinCount: {
+//             $size: {
+//               $filter: {
+//                 input: "$seatNumbersArray",
+//                 as: "seat",
+//                 cond: { $regexMatch: { input: "$$seat", regex: /^કેબિન/ } },
+//               },
+//             },
+//           },
+//           // Calculate seatCount by counting each seat, excluding "કેબિન" seats
 //           seatCount: {
 //             $size: {
 //               $filter: {
@@ -878,58 +793,56 @@ function parseTimeToMinutes(time) {
 //                 },
 //               },
 //             },
-//           },        
-//         },      
-//       },    
-//     ]);      
+//           },
+//         },
+//       },
+//     ]);
 
-//     // If no seats are found, find the matching routes based on the date    
-//     if (seats.length === 0) {      
-//       // Query for routes that match the date range, but without filtering by route      
-//       const routes = await Routeinfo.find({        
-//         date: { $gte: startOfDay, $lte: endOfDay },      
-//       }).select("_id from to pickup pickuptime");        
+//     // If no seats are found, find the matching routes based on the date
+//     if (seats.length === 0) {
+//       // Query for routes that match the date range, but without filtering by route
+//       const routes = await Routeinfo.find({
+//         date: { $gte: startOfDay, $lte: endOfDay },
+//       }).select("_id from to pickup pickuptime");
 
-//       // If no routes are found for the given date, return empty response or message      
-//       if (routes.length === 0) {        
-//         return res.status(200).json({ message: "No routes available for the given date" });      
-//       }        
+//       // If no routes are found for the given date, return empty response or message
+//       if (routes.length === 0) {
+//         return res.status(200).json({ message: "No routes available for the given date" });
+//       }
 
-//       // Return the routes with empty passengers array      
-//       const response = routes.map(route => ({        
-//         route: route._id,        
-//         passengers: [], // Empty passengers array        
-//         from: route.from,        
-//         to: route.to,        
-//         pickup: route.pickup,        
-//         pickuptime: route.pickuptime,      
-//       }));        
+//       // Return the routes with empty passengers array
+//       const response = routes.map(route => ({
+//         route: route._id,
+//         passengers: [], // Empty passengers array
+//         from: route.from,
+//         to: route.to,
+//         pickup: [route.pickup], // Return pickup as an array
+//         pickuptime: [route.pickuptime], // Return pickuptime as an array
+//       }));
 
-//       return res.status(200).json(response);    
-//     }      
+//       return res.status(200).json(response);
+//     }
 
-//     // Prepare response based on the grouped data    
-//     const response = seats.map(group => ({      
-//       mobile: group.mobile,      
-//       route: group.route,      
-//       seatNumbers: group.seatNumbersArray, // Array of seat numbers      
-//       pickuptime: group.pickuptime,   // Pickup time      
-//       pickup: group.pickup,           // Pickup location      
-//       from: group.from,               // From location      
-//       to: group.to,                   // To location      
-//       cabinCount: group.cabinCount,   // Cabin count (for "કેબિન" seats)      
-//       seatCount: group.seatCount,     // Total seat count (split "3.4" to count 5 seats)    
-//     }));      
+//     // Prepare response based on the grouped data
+//     const response = seats.map(group => ({
+//       mobile: group.mobile,
+//       route: group.route,
+//       seatNumbers: group.seatNumbers, // Array of seat numbers
+//       pickuptime: group.pickuptime, // Array of pickup times
+//       pickup: group.pickup, // Array of pickup locations
+//       from: group.from, // From location
+//       to: group.to, // To location
+//       cabinCount: group.cabinCount, // Cabin count (for "કેબિન" seats)
+//       seatCount: group.seatCount, // Total seat count (split "3.4" to count 5 seats)
+//     }));
 
-//     // Send the response    
-//     return res.status(200).json(response);  
-//   } catch (error) {    
-//     console.error("Server error:", error);    
-//     return res.status(500).json({ error: "Server error: " + error.message });  
-//   } 
+//     // Send the response
+//     return res.status(200).json(response);
+//   } catch (error) {
+//     console.error("Server error:", error);
+//     return res.status(500).json({ error: "Server error: " + error.message });
+//   }
 // }
-
-
 async function getSeatsByMobile(req, res) {
   try {
     const { date } = req.query;
@@ -940,7 +853,7 @@ async function getSeatsByMobile(req, res) {
     }
 
     // Parse the date and set the time for start and end of day
-    const dateValue = new Date(date.split('/').reverse().join('-')); // Convert DD/MM/YYYY to Date format
+    const dateValue = new Date(date.split("/").reverse().join("-")); // Convert DD/MM/YYYY to Date format
     const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0)); // Start of the day
     const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999)); // End of the day
 
@@ -966,8 +879,8 @@ async function getSeatsByMobile(req, res) {
           mobile: "$_id.mobile",
           route: "$_id.route",
           seatNumbers: "$seatNumbersArray", // Array of seat numbers
-          pickuptime: "$pickuptimeArray", // Array of pickuptime
-          pickup: "$pickupArray", // Array of pickup locations
+          pickuptime: { $setUnion: ["$pickuptimeArray", []] }, // Remove duplicates from pickuptime
+          pickup: { $setUnion: ["$pickupArray", []] }, // Remove duplicates from pickup
           from: 1,
           to: 1,
           // Calculate cabinCount using a regex to filter "કેબિન" entries
@@ -1027,11 +940,13 @@ async function getSeatsByMobile(req, res) {
 
       // If no routes are found for the given date, return empty response or message
       if (routes.length === 0) {
-        return res.status(200).json({ message: "No routes available for the given date" });
+        return res
+          .status(200)
+          .json({ message: "No routes available for the given date" });
       }
 
       // Return the routes with empty passengers array
-      const response = routes.map(route => ({
+      const response = routes.map((route) => ({
         route: route._id,
         passengers: [], // Empty passengers array
         from: route.from,
@@ -1044,12 +959,12 @@ async function getSeatsByMobile(req, res) {
     }
 
     // Prepare response based on the grouped data
-    const response = seats.map(group => ({
+    const response = seats.map((group) => ({
       mobile: group.mobile,
       route: group.route,
       seatNumbers: group.seatNumbers, // Array of seat numbers
-      pickuptime: group.pickuptime, // Array of pickup times
-      pickup: group.pickup, // Array of pickup locations
+      pickuptime: group.pickuptime, // Array of pickup times without duplicates
+      pickup: group.pickup, // Array of pickup locations without duplicates
       from: group.from, // From location
       to: group.to, // To location
       cabinCount: group.cabinCount, // Cabin count (for "કેબિન" seats)
@@ -1064,8 +979,6 @@ async function getSeatsByMobile(req, res) {
   }
 }
 
-
-
 module.exports = {
   getsearchAll,
   getsearchBus,
@@ -1074,5 +987,5 @@ module.exports = {
   getSeatsByDate,
   ticketsearch,
   getchartprint,
-  getSeatsByMobile
+  getSeatsByMobile,
 };
