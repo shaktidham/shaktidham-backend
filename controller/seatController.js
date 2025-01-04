@@ -131,38 +131,7 @@ async function deleteseat(req, res) {
     res.status(500).json(`error while allocating seat ${error}`);
   }
 }
-// async function updateseat(req, res) {
-//   try {
-//     const {
-//       name,
-//       mobile,
-//       from,
-//       to,
-//       pickup,
-//       price,
-//       drop,
-//       age,
-//       gender,
-//       extradetails,
-//     } = req.body;
 
-//     const currentSeat = await SeatModel.findByIdAndUpdate(req.params.id, {
-//       name: name,
-//       mobile: mobile,
-//       from: from,
-//       to: to,
-//       pickup: pickup,
-//       price: price,
-//       drop: drop,
-//       age: age,
-//       gender: gender,
-//       extradetails: extradetails,
-//     });
-//     res.status(201).json({ data: currentSeat });
-//   } catch (error) {
-//     res.status(500).json(`error while allocating seat ${error}`);
-//   }
-// }
 async function updateseat(req, res) {
   try {
     const {

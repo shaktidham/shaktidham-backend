@@ -572,6 +572,92 @@ const ticketsearch = async (req, res) => {
   }
 };
 
+// async function getSeatsByDate(req, res) {
+//   try {
+//     const { date } = req.query;
+
+//     // Check if date is provided
+//     if (!date) {
+//       return res.status(400).json({ error: "Date parameter is required" });
+//     }
+
+//     // Parse the date and set the time for start and end of the day
+//     const dateValue = new Date(date);
+//     const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0)); // Start of the day
+//     const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999)); // End of the day
+
+//     // Query the database for seats within the date range (start and end of day)
+//     const seats = await SeatModel.find({
+//       date: { $gte: startOfDay, $lte: endOfDay }, // Date range query
+//     });
+
+//     // Query for routes that match the date range
+//     const routes = await Routeinfo.find({
+//       date: { $gte: startOfDay, $lte: endOfDay },
+//     }).select("_id Busname date driver price cabinprice location last");
+
+//     // If no routes are found for the given date, return a message
+//     if (routes.length === 0) {
+//       return res
+//         .status(200)
+//         .json({ message: "No routes available for the given date" });
+//     }
+
+//     // Group seats by route
+//     const groupedSeats = seats.reduce((acc, seat) => {
+//       if (!acc[seat.route]) {
+//         acc[seat.route] = []; // Initialize array for each route
+//       }
+
+//       // Push the passenger details for each route
+//       acc[seat.route].push({
+//         route: seat.route,
+//         date: seat.date,
+//         name: seat.name,
+//         mobile: seat.mobile,
+//         seatNumber: seat.seatNumber,
+//         extradetails: seat.extradetails,
+//         from: seat.from,
+//         to: seat.to,
+//         pickup: seat.pickup,
+//         drop: seat.drop,
+//         gender: seat.gender,
+//         pickuptime: seat.pickuptime,
+//         price: seat.price,
+//         age: seat.age,
+//         id: seat._id,
+//       });
+
+//       return acc;
+//     }, {});
+
+//     // Prepare the response for all routes, including cabinprice
+//     const response = await Promise.all(
+//       routes.map(async (route) => {
+//         const passengers = groupedSeats[route._id] || []; // If no passengers, return empty array
+
+//         return {
+//           route: route._id,
+//           busName: route.Busname,
+//           last: route.last,
+//           date: route.date,
+//           price: route.price,
+//           cabinprice: route.cabinprice, // Ensure cabinprice is included here
+//           location: route.location,
+//           driver: route.driver,
+//           passengers: passengers, // Include the passengers (empty or not)
+//         };
+//       })
+//     );
+
+//     // Send the response
+//     return res.status(200).json(response);
+//   } catch (error) {
+//     console.error("Server error:", error);
+//     return res.status(500).json({ error: "Server error: " + error.message });
+//   }
+// }
+
 async function getSeatsByDate(req, res) {
   try {
     const { date } = req.query;
@@ -598,19 +684,21 @@ async function getSeatsByDate(req, res) {
 
     // If no routes are found for the given date, return a message
     if (routes.length === 0) {
-      return res
-        .status(200)
-        .json({ message: "No routes available for the given date" });
+      return res.status(200).json({ message: "No routes available for the given date" });
     }
 
-    // Group seats by route
+    // Group seats by route and count occurrences
     const groupedSeats = seats.reduce((acc, seat) => {
       if (!acc[seat.route]) {
-        acc[seat.route] = []; // Initialize array for each route
+        acc[seat.route] = {
+          passengers: [],
+          cabinCount: 0, // Initialize cabin count for each route
+          count: 0, // Initialize normal seat count for each route
+        };
       }
 
-      // Push the passenger details for each route
-      acc[seat.route].push({
+      // Add passenger details to the grouped seats
+      acc[seat.route].passengers.push({
         route: seat.route,
         date: seat.date,
         name: seat.name,
@@ -628,13 +716,33 @@ async function getSeatsByDate(req, res) {
         id: seat._id,
       });
 
+      // Check if the seat is a "કેબિન-X" type
+      const cabinPattern = /^કેબિન-\d+$/; // Regex to match "કેબિન-1", "કેબિન-2", etc.
+      const regularSeatPattern = /^[A-L]$/; // Regex to match "A" to "L"
+      const numberSeatPattern = /^[1-9]$|^[1][0-9]$|^2[0-4]$/; // Regex to match "1" to "24"
+      const decimalSeatPattern = /^\d+\.\d+$/; // Regex to match "1.2", "2.5", etc.
+
+      if (cabinPattern.test(seat.seatNumber)) {
+        // If the seat is "કેબિન-X", increment the cabin count
+        acc[seat.route].cabinCount += 1;
+      } else if (decimalSeatPattern.test(seat.seatNumber)) {
+        // If the seat has a decimal (like "1.2"), split and count as 2
+        const parts = seat.seatNumber.split(".");
+        acc[seat.route].count += parts.length; // Count parts (e.g., "1.2" is 2 parts)
+      } else if (regularSeatPattern.test(seat.seatNumber) || numberSeatPattern.test(seat.seatNumber)) {
+        // If the seat is from "A" to "L" or "1" to "24", increment the count
+        acc[seat.route].count += 1;
+      }
+
       return acc;
     }, {});
 
-    // Prepare the response for all routes, including cabinprice
+    // Prepare the response for all routes, including cabinCount and count
     const response = await Promise.all(
       routes.map(async (route) => {
-        const passengers = groupedSeats[route._id] || []; // If no passengers, return empty array
+        const passengers = groupedSeats[route._id]?.passengers || []; // If no passengers, return empty array
+        const cabinCount = groupedSeats[route._id]?.cabinCount || 0; // Get the cabin count for this route
+        const count = groupedSeats[route._id]?.count || 0; // Get the normal seat count for this route
 
         return {
           route: route._id,
@@ -645,6 +753,8 @@ async function getSeatsByDate(req, res) {
           cabinprice: route.cabinprice, // Ensure cabinprice is included here
           location: route.location,
           driver: route.driver,
+          cabinCount: cabinCount, // Include the cabin seat count
+          count: count, // Include the normal seat count
           passengers: passengers, // Include the passengers (empty or not)
         };
       })
@@ -657,6 +767,7 @@ async function getSeatsByDate(req, res) {
     return res.status(500).json({ error: "Server error: " + error.message });
   }
 }
+
 
 async function getchartprint(req, res) {
   try {
