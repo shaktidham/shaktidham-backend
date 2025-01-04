@@ -9,6 +9,7 @@ const busInfo = require("./routes/BusInfoRoute");
 const routeInfo = require("./routes/Routeinfo");
 const auth = require("./routes/authRoute");
 const village = require("./routes/villageRoute");
+const agent = require("./routes/agent");
 
 env.config();
 
@@ -35,6 +36,7 @@ app.use("/bus", busInfo);
 app.use("/route", routeInfo);
 app.use("/auth", auth);
 app.use("/village", village);
+app.use("/agent", agent);
 
 // Start Server
 app.listen(port, () => {
