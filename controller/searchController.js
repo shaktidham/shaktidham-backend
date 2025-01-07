@@ -803,7 +803,9 @@ async function getSeatsByDate(req, res) {
 
     // If no routes are found for the given date (and optionally route), return a message
     if (routes.length === 0) {
-      return res.status(200).json({ message: "No routes available for the given date" });
+      return res
+        .status(200)
+        .json({ message: "No routes available for the given date" });
     }
 
     // Group seats by route and count occurrences
@@ -848,7 +850,10 @@ async function getSeatsByDate(req, res) {
         // If the seat has a decimal (like "1.2"), split and count as 2
         const parts = seat.seatNumber.split(".");
         acc[seat.route].count += parts.length; // Count parts (e.g., "1.2" is 2 parts)
-      } else if (regularSeatPattern.test(seat.seatNumber) || numberSeatPattern.test(seat.seatNumber)) {
+      } else if (
+        regularSeatPattern.test(seat.seatNumber) ||
+        numberSeatPattern.test(seat.seatNumber)
+      ) {
         // If the seat is from "A" to "L" or "1" to "24", increment the count
         acc[seat.route].count += 1;
       }
@@ -886,7 +891,6 @@ async function getSeatsByDate(req, res) {
     return res.status(500).json({ error: "Server error: " + error.message });
   }
 }
-
 
 async function getchartprint(req, res) {
   try {
@@ -940,139 +944,6 @@ function parseTimeToMinutes(time) {
   return hours * 60 + minutes;
 }
 
-// async function getSeatsByMobile(req, res) {
-//   try {
-//     const { date } = req.query;
-
-//     // Check if date is provided
-//     if (!date) {
-//       return res.status(400).json({ error: "Date parameter is required" });
-//     }
-
-//     // Parse the date and set the time for start and end of day
-//     const dateValue = new Date(date.split('/').reverse().join('-')); // Convert DD/MM/YYYY to Date format
-//     const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0)); // Start of the day
-//     const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999)); // End of the day
-
-//     // Query the database for seats within the date range (start and end of day)
-//     const seats = await SeatModel.aggregate([
-//       {
-//         $match: {
-//           date: { $gte: startOfDay, $lte: endOfDay }, // Date range query
-//         },
-//       },
-//       {
-//         $group: {
-//           _id: { mobile: "$mobile", route: "$route" }, // Group by mobile number and route
-//           seatNumbersArray: { $push: "$seatNumber" }, // Collect all seat numbers for the group
-//           pickuptimeArray: { $push: "$pickuptime" }, // Collect all pickuptime for the group
-//           pickupArray: { $push: "$pickup" }, // Collect all pickup locations for the group
-//           from: { $first: "$from" }, // From location (since it’s the same for the same route)
-//           to: { $first: "$to" }, // To location (same as above)
-//         },
-//       },
-//       {
-//         $project: {
-//           mobile: "$_id.mobile",
-//           route: "$_id.route",
-//           seatNumbers: "$seatNumbersArray", // Array of seat numbers
-//           pickuptime: "$pickuptimeArray", // Array of pickuptime
-//           pickup: "$pickupArray", // Array of pickup locations
-//           from: 1,
-//           to: 1,
-//           // Calculate cabinCount using a regex to filter "કેબિન" entries
-//           cabinCount: {
-//             $size: {
-//               $filter: {
-//                 input: "$seatNumbersArray",
-//                 as: "seat",
-//                 cond: { $regexMatch: { input: "$$seat", regex: /^કેબિન/ } },
-//               },
-//             },
-//           },
-//           // Calculate seatCount by counting each seat, excluding "કેબિન" seats
-//           seatCount: {
-//             $size: {
-//               $filter: {
-//                 input: {
-//                   $reduce: {
-//                     input: {
-//                       $map: {
-//                         input: "$seatNumbersArray",
-//                         as: "seat",
-//                         in: {
-//                           $cond: {
-//                             if: {
-//                               $regexMatch: { input: "$$seat", regex: /\./ }, // Check for a dot in the seat number
-//                             },
-//                             then: { $split: ["$$seat", "."] }, // Split "3.4" into ["3", "4"]
-//                             else: ["$$seat"], // Keep single seats as is
-//                           },
-//                         },
-//                       },
-//                     },
-//                     initialValue: [],
-//                     in: { $concatArrays: ["$$value", "$$this"] }, // Flatten the array
-//                   },
-//                 },
-//                 as: "seat",
-//                 cond: {
-//                   $not: {
-//                     $regexMatch: { input: "$$seat", regex: /^કેબિન/ }, // Exclude "કેબિન" seats from the count
-//                   },
-//                 },
-//               },
-//             },
-//           },
-//         },
-//       },
-//     ]);
-
-//     // If no seats are found, find the matching routes based on the date
-//     if (seats.length === 0) {
-//       // Query for routes that match the date range, but without filtering by route
-//       const routes = await Routeinfo.find({
-//         date: { $gte: startOfDay, $lte: endOfDay },
-//       }).select("_id from to pickup pickuptime");
-
-//       // If no routes are found for the given date, return empty response or message
-//       if (routes.length === 0) {
-//         return res.status(200).json({ message: "No routes available for the given date" });
-//       }
-
-//       // Return the routes with empty passengers array
-//       const response = routes.map(route => ({
-//         route: route._id,
-//         passengers: [], // Empty passengers array
-//         from: route.from,
-//         to: route.to,
-//         pickup: [route.pickup], // Return pickup as an array
-//         pickuptime: [route.pickuptime], // Return pickuptime as an array
-//       }));
-
-//       return res.status(200).json(response);
-//     }
-
-//     // Prepare response based on the grouped data
-//     const response = seats.map(group => ({
-//       mobile: group.mobile,
-//       route: group.route,
-//       seatNumbers: group.seatNumbers, // Array of seat numbers
-//       pickuptime: group.pickuptime, // Array of pickup times
-//       pickup: group.pickup, // Array of pickup locations
-//       from: group.from, // From location
-//       to: group.to, // To location
-//       cabinCount: group.cabinCount, // Cabin count (for "કેબિન" seats)
-//       seatCount: group.seatCount, // Total seat count (split "3.4" to count 5 seats)
-//     }));
-
-//     // Send the response
-//     return res.status(200).json(response);
-//   } catch (error) {
-//     console.error("Server error:", error);
-//     return res.status(500).json({ error: "Server error: " + error.message });
-//   }
-// }
 async function getSeatsByMobile(req, res) {
   try {
     const { date } = req.query;
@@ -1209,6 +1080,44 @@ async function getSeatsByMobile(req, res) {
   }
 }
 
+async function getLastBookedSeat(req, res) {
+  try {
+    const { date } = req.query;
+
+    // Check if date is provided
+    if (!date) {
+      // Fetch last 20 overall entries if no date is provided
+      const seats = await SeatModel.find().sort({ createdAt: -1 }).limit(20);
+      return res.status(200).json(seats);
+    }
+
+    // Parse the date and set the time for start and end of day
+    const dateValue = new Date(date.split("/").reverse().join("-")); // Convert DD/MM/YYYY to Date format
+    const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0)); // Start of the day
+    const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999)); // End of the day
+
+    // Fetch last 20 entries for the specific date range
+    const seats = await SeatModel.find({
+      createdAt: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
+    })
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    // If no seats found for that day, fetch overall last 20 entries
+    if (seats.length === 0) {
+      const allSeats = await SeatModel.find().sort({ createdAt: -1 }).limit(20);
+      return res.status(200).json(allSeats);
+    }
+
+    return res.status(200).json(seats);
+  } catch (error) {
+    return res.status(500).json({ error: "Server error" });
+  }
+}
+
 module.exports = {
   getsearchAll,
   getsearchBus,
@@ -1218,4 +1127,5 @@ module.exports = {
   ticketsearch,
   getchartprint,
   getSeatsByMobile,
+  getLastBookedSeat,
 };
