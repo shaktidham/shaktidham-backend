@@ -9,11 +9,11 @@ async function seedAdminAndRole() {
     await mongoose.connect(MONGO_URI);
     console.log("MongoDB connected for seeding.");
 
-    const adminExists = await User.findOne({ email: "divu" });
+    const adminExists = await User.findOne({ email: "mukeshbhai" });
     if (!adminExists) {
-      const hashedPassword = await bcrypt.hash("1812", 10);
+      const hashedPassword = await bcrypt.hash("9999", 10);
       await User.create({
-        email: "divu",
+        email: "mukeshbhai",
         password: hashedPassword,
       });
       console.log("Admin user seeded successfully.");
