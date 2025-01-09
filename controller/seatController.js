@@ -123,7 +123,10 @@ async function allocateSeats(req, res) {
       .json({ message: `Error while allocating seats: ${error.message}` });
   }
 }
-
+const verifyToken = (token) => {
+  if (!token) throw new Error("Authorization token is required.");
+  return jwt.verify(token, process.env.JWT_SECRET);
+};
 
 async function allseats(req, res) {
   const token = req.headers.authorization?.split(" ")[1];

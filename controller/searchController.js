@@ -4,6 +4,10 @@ const Businfo = require("../models/busInfo");
 const Routeinfo = require("../models/routeinfo");
 const jwt = require('jsonwebtoken');
 
+const verifyToken = (token) => {
+  if (!token) throw new Error("Authorization token is required.");
+  return jwt.verify(token, process.env.JWT_SECRET);
+};
 async function getsearchAll(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
@@ -810,8 +814,12 @@ function parseTimeToMinutes(time) {
 
 async function getSeatsByMobile(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    return res.status(400).json({ error: "Token is required. Please provide a valid token." });
+  }
   try {
     const decoded = verifyToken(token);
+    console.log(decoded,"decoded");
     if (decoded.email !== "vinay") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
