@@ -1,10 +1,17 @@
 const SeatModel = require("../models/bookedseat");
 const routeInfo = require("../models/routeinfo");
 const { translate } = require("@vitalets/google-translate-api");
-
+const jwt = require('jsonwebtoken');
 
 async function allocateSeats(req, res) {
+  const token = req.headers.authorization?.split(" ")[1];
   try {
+    const decoded = verifyToken(token);
+    if (decoded.email !== "vinay") {
+      return res.status(403).json({
+        error: "Access denied. You are not authorized to view agents.",
+      });
+    }
     const {
       seatNumber,
       name,
@@ -108,6 +115,9 @@ async function allocateSeats(req, res) {
     // Return the allocated seat data
     res.status(201).json({ data: allocatedSeats });
   } catch (error) {
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+    }
     res
       .status(500)
       .json({ message: `Error while allocating seats: ${error.message}` });
@@ -116,24 +126,51 @@ async function allocateSeats(req, res) {
 
 
 async function allseats(req, res) {
+  const token = req.headers.authorization?.split(" ")[1];
   try {
+    const decoded = verifyToken(token);
+    if (decoded.email !== "vinay") {
+      return res.status(403).json({
+        error: "Access denied. You are not authorized to view agents.",
+      });
+    }
     const currentSeat = await SeatModel.find({});
     res.status(201).json({ data: currentSeat });
   } catch (error) {
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+    }
     res.status(500).json(`error while allocating seat ${error}`);
   }
 }
 async function deleteseat(req, res) {
+  const token = req.headers.authorization?.split(" ")[1];
   try {
+    const decoded = verifyToken(token);
+    if (decoded.email !== "vinay") {
+      return res.status(403).json({
+        error: "Access denied. You are not authorized to view agents.",
+      });
+    }
     const currentSeat = await SeatModel.findByIdAndDelete(req.params.id);
     res.status(201).json("seat is deleted");
   } catch (error) {
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+    }
     res.status(500).json(`error while allocating seat ${error}`);
   }
 }
 
 async function updateseat(req, res) {
+  const token = req.headers.authorization?.split(" ")[1];
   try {
+    const decoded = verifyToken(token);
+    if (decoded.email !== "vinay") {
+      return res.status(403).json({
+        error: "Access denied. You are not authorized to view agents.",
+      });
+    }
     const {
       name,
       mobile,
@@ -197,6 +234,9 @@ async function updateseat(req, res) {
     // Return the updated seat details
     res.status(200).json({ data: currentSeat });
   } catch (error) {
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+    }
     res.status(500).json({ message: `Error while updating seat: ${error.message}` });
   }
 }
