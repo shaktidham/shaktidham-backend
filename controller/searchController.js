@@ -692,6 +692,7 @@ async function getSeatsByDate(req, res) {
         price: seat.price,
         age: seat.age,
         id: seat._id,
+        createdAt:seat.createdAt
       });
 
       // Check if the seat is a "કેબિન-X" type
