@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const toIST = (date) => {
+  return new Date(date.getTime() + 5 * 60 * 60 * 1000 + 30 * 60 * 1000); // UTC + 5:30
+};
 
 const bookedseatSchema = new mongoose.Schema(
   {
@@ -25,5 +28,10 @@ const bookedseatSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+bookedseatSchema.pre("save", function (next) {
+  this.createdAt = toIST(new Date());
+  this.updatedAt = toIST(new Date());
+  next();
+});
 // module.exports = mongoose.model("Key", keySchema);
 module.exports = mongoose.model("BookedSeat", bookedseatSchema);
