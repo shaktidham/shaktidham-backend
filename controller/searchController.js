@@ -9,14 +9,7 @@ const verifyToken = (token) => {
   return jwt.verify(token, process.env.JWT_SECRET);
 };
 async function getsearchAll(req, res) {
-  const token = req.headers.authorization?.split(" ")[1];
   try {
-    const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
-      return res.status(403).json({
-        error: "Access denied. You are not authorized to view agents.",
-      });
-    }
     // Extract parameters
     const { date: dateStr, _id } = req.query;
 
@@ -30,10 +23,7 @@ async function getsearchAll(req, res) {
         return res.status(404).json({ error: "Route not found." });
       }
     } catch (err) {
-    
-      return res
-        .status(500)
-        .json({ error: "Error fetching routeinfo from DB: " + err.message });
+      return res.status(500).json({ error: "Error fetching routeinfo from DB: " + err.message });
     }
 
     // Handle date filter if provided
@@ -43,9 +33,7 @@ async function getsearchAll(req, res) {
       const dateValue = new Date(formattedDateStr);
 
       if (isNaN(dateValue)) {
-        return res
-          .status(400)
-          .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+        return res.status(400).json({ error: "Invalid date format. Please use YYYY-MM-DD." });
       }
 
       // Create start and end of the day
@@ -90,7 +78,8 @@ async function getsearchAll(req, res) {
       },
       {
         $project: {
-          routeDetails: 0, // Exclude routeDetails field
+          seatNumber: 1, // Include only the seatNumber field
+          _id: 0, // Optionally exclude _id if not needed
         },
       },
     ];
@@ -100,13 +89,12 @@ async function getsearchAll(req, res) {
 
     return res.status(200).json({ data: documents });
   } catch (error) {
-    if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
-    }
     console.error("Server error:", error); // Log the full error for debugging
     return res.status(500).json({ error: "Server error: " + error.message });
   }
 }
+
+
 
 async function getsearchBus(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
@@ -473,76 +461,7 @@ async function getsearchAllByseat(req, res) {
   }
 }
 
-async function getsearchRouteByvillage(req, res) {
-  const token = req.headers.authorization?.split(" ")[1];
-  try {
-    const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
-      return res.status(403).json({
-        error: "Access denied. You are not authorized to view agents.",
-      });
-    }
-    const { Date: dateStr, from, to } = req.query;
 
-    // Initialize an empty filter object
-    const filter = {};
-
-    // Add date range filter if the date is provided
-    if (dateStr) {
-      // Parse the date string into a Date object
-      const dateValue = new Date(dateStr);
-
-      // Check if the date conversion is valid
-      if (!isNaN(dateValue.getTime())) {
-        // Define the start and end of the day
-        const startOfDay = new Date(dateValue.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
-
-        // Create a filter to match documents where the date is within the specified date range
-        filter.date = {
-          $gte: startOfDay,
-          $lte: endOfDay,
-        };
-      } else {
-        return res
-          .status(400)
-          .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
-      }
-    }
-
-    // Add 'from' filter if provided
-    if (from) {
-      // Assume `from` can be a single value or an array
-      if (Array.isArray(from)) {
-        filter.from = { $in: from };
-      } else {
-        filter.from = from;
-      }
-    }
-
-    // Add 'to' filter if provided
-    if (to) {
-      // Assume `to` can be a single value or an array
-      if (Array.isArray(to)) {
-        filter.to = { $in: to };
-      } else {
-        filter.to = to;
-      }
-    }
-
-    // Find documents matching the filter
-    const results = await Routeinfo.find(filter);
-
-    // Respond with the results
-    res.status(200).json(results);
-  } catch (error) {
-    // Handle errors
-    if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
-    }
-    res.status(500).json({ error: `Error: ${error.message}` });
-  }
-}
 const ticketsearch = async (req, res) => {
   const { date, mobile } = req.body;
 
@@ -1009,6 +928,59 @@ async function getLastBookedSeat(req, res) {
     return res.status(500).json({ error: "Server error" });
   }
 }
+
+async function getsearchRouteByvillage(req, res) {
+  try {
+    const { date, from, to } = req.query;
+console.log(from,to,date);
+    // Initialize the filter object
+    const filter = {};
+
+    // Handle the 'date' filter: Check if a valid 'date' parameter is provided
+    if (date) {
+      const dateValue = new Date(date);
+      if (!isNaN(dateValue.getTime())) {
+        // Create separate Date objects for start and end of the day
+        const startOfDay = new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate(), 0, 0, 0, 0);
+        const endOfDay = new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate(), 23, 59, 59, 999);
+
+        filter.date = {
+          $gte: startOfDay,
+          $lte: endOfDay,
+        };
+      } else {
+        return res.status(400).json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+      }
+    }
+
+    // Handle the 'from' filter: Check if it is provided and filter accordingly
+    if (from) {
+      filter["from.village"] = from;
+    }
+
+    // Handle the 'to' filter: Check if it is provided and filter accordingly
+    if (to) {
+      filter["to.village"] = to;
+    }
+
+    // Query the Routeinfo collection using the filter
+    const results = await Routeinfo.find(filter);
+
+    // If no results were found, send an empty array
+    if (results.length === 0) {
+      return res.status(200).json([]); // Explicitly returning an empty array
+    }
+
+    // Send back the results as a response
+    res.status(200).json(results);
+  } catch (error) {
+    // Handle any errors that occur during the query process
+    res.status(500).json({ error: `Error: ${error.message}` });
+  }
+}
+
+
+
 
 module.exports = {
   getsearchAll,

@@ -1,17 +1,17 @@
 const SeatModel = require("../models/bookedseat");
 const routeInfo = require("../models/routeinfo");
 const { translate } = require("@vitalets/google-translate-api");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 async function allocateSeats(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
-    const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
-      return res.status(403).json({
-        error: "Access denied. You are not authorized to view agents.",
-      });
-    }
+    // const decoded = verifyToken(token);
+    // if (decoded.email !== "vinay") {
+    //   return res.status(403).json({
+    //     error: "Access denied. You are not authorized to view agents.",
+    //   });
+    // }
     const {
       seatNumber,
       name,
@@ -116,7 +116,9 @@ async function allocateSeats(req, res) {
     res.status(201).json({ data: allocatedSeats });
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
     res
       .status(500)
@@ -141,7 +143,9 @@ async function allseats(req, res) {
     res.status(201).json({ data: currentSeat });
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
     res.status(500).json(`error while allocating seat ${error}`);
   }
@@ -159,7 +163,9 @@ async function deleteseat(req, res) {
     res.status(201).json("seat is deleted");
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
     res.status(500).json(`error while allocating seat ${error}`);
   }
@@ -187,7 +193,7 @@ async function updateseat(req, res) {
       extradetails,
     } = req.body;
     const route = req.query.id;
-    const id =req.params.id  
+    const id = req.params.id;
 
     // Fetch the existing route using the route ID from the request
     const existingRoute = await routeInfo.findById(route);
@@ -212,10 +218,8 @@ async function updateseat(req, res) {
     const pickupTime = findTimeForPoint(pickup, "from"); // Get time for pickup from 'from' array
     // const dropTime = findTimeForPoint(drop, "to"); // Get time for drop from 'to' array
 
-
-
     // Find the current seat by ID
-    const currentSeat = await SeatModel.findByIdAndUpdate (id, {
+    const currentSeat = await SeatModel.findByIdAndUpdate(id, {
       name,
       mobile,
       from,
@@ -227,7 +231,7 @@ async function updateseat(req, res) {
       gender,
       extradetails,
       pickuptime: pickupTime, // Update pickup time
-         // Update drop time
+      // Update drop time
     });
 
     if (!currentSeat) {
@@ -238,12 +242,14 @@ async function updateseat(req, res) {
     res.status(200).json({ data: currentSeat });
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
-    res.status(500).json({ message: `Error while updating seat: ${error.message}` });
+    res
+      .status(500)
+      .json({ message: `Error while updating seat: ${error.message}` });
   }
 }
-
-
 
 module.exports = { allocateSeats, allseats, updateseat, deleteseat };
