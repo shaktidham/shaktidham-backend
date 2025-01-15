@@ -78,7 +78,7 @@ exports.login = async (req, res) => {
     }
 
     // Check if email is 'vinays' and skip IP check if it is
-    if (email !== 'vinays') {
+    if (email !== 'vinay') {
       // Check if the user's stored IP address matches the current IP
       if (user.lastLoginIp && user.lastLoginIp !== userIp) {
         return res.status(403).json({
