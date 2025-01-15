@@ -480,7 +480,7 @@ async function routeread(req, res) {
       const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
 
       const busdetails = await Businfo.find({
-        date: { $gte: startOfDay, $lte: endOfDay },isshow:true,
+        date: { $gte: startOfDay, $lte: endOfDay },
       });
       return res.status(200).json({ data: busdetails });
     }
@@ -659,7 +659,7 @@ async function routereadid(req, res) {
       const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
 
       const busdetails = await Businfo.find(
-        { date: { $gte: startOfDay, $lte: endOfDay },isshow:true, },
+        { date: { $gte: startOfDay, $lte: endOfDay }, },
         "_id Busname"
       );
 

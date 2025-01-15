@@ -610,6 +610,7 @@ async function getSeatsByDate(req, res) {
         pickuptime: seat.pickuptime,
         price: seat.price,
         age: seat.age,
+        bookedBy:seat.bookedBy,
         id: seat._id,
         createdAt:seat.createdAt
       });
