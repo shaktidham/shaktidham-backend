@@ -165,3 +165,39 @@ exports.signup = async (req, res) => {
     return res.status(500).json({ message: "Error signing up. Please try again later." });
   }
 };
+exports.removeip = async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  try {
+    if (!token) {
+      return res.status(403).json({ message: "Authorization token is required." });
+    }
+
+    const decoded = verifyToken(token);
+
+    // Only allow users with a specific email to sign up
+    if (decoded.role!== "superAdmin") {
+      return res.status(403).json({
+        error: "Access denied. You are not authorized to view agents.",
+      });
+    }
+    const { id } = req.params;
+
+    // Find user by ID
+    const user = await User.findById( id );
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    // Remove the lastLoginIp field from the user
+    user.lastLoginIp = undefined;
+
+    // Save the updated user record
+    await user.save();
+
+    return res.status(200).json({ message: "Last login IP removed successfully" });
+
+  } catch (err) {
+    console.error("Error:", err);
+    return res.status(500).json({ message: "Error processing the request. Please try again later." });
+  }
+};
