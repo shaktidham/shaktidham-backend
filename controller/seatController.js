@@ -7,11 +7,13 @@ async function allocateSeats(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin" || decoded.role!== "admin") {
+
+    if (decoded.role !== "superAdmin" && decoded.role !== "admin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
     }
+    
     const {
       seatNumber,
       name,
