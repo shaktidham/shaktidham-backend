@@ -9,7 +9,7 @@ async function villageDetails(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -40,7 +40,7 @@ async function villageread(req, res) {
    
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -105,7 +105,7 @@ async function villagedelete(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -127,7 +127,7 @@ async function villageUpdate(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });

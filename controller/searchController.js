@@ -100,7 +100,7 @@ async function getsearchBus(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -180,7 +180,7 @@ async function getsearchAllByseat(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -541,7 +541,7 @@ async function getSeatsByDate(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -675,7 +675,7 @@ async function getchartprint(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -740,7 +740,7 @@ async function getSeatsByMobile(req, res) {
   try {
     const decoded = verifyToken(token);
     console.log(decoded,"decoded");
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -885,7 +885,7 @@ async function getLastBookedSeat(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });

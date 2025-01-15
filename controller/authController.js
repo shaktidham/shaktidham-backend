@@ -1,222 +1,167 @@
 const User = require("../models/user");
-// const Role = require('../models/admin');
-// const bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-// const tokengen = require("../middleware/authMiddleware");
-// const Key = require("../models/randomkey");
-// const express = require('express')
-// const app = express()
-// const bodyParser = require('body-parser');
 
-// app.use(bodyParser.json());
+const verifyToken = (token) => {
+  if (!token) throw new Error("Authorization token is required.");
+  return jwt.verify(token, process.env.JWT_SECRET);
+};
 
-var role1;
-// exports.signup = async (req, res) => {
+// exports.login = async (req, res) => {
 //   try {
-//     const { username, email, password } = req.body;
+//     const { email, password } = req.body;
 
-//     // Check if username exists using the User model
-//     const existingUser = await User.findOne({ email: email });
-//     if (existingUser) {
-//       return res.status(400).json({ message: "Username already exists" });
+//     // Validate email and password
+//     if (!email || !password) {
+//       return res.status(400).json({ message: "Email and password are required" });
 //     }
 
-//     // Hash password before saving
-//     const hashedPassword = await bcrypt.hash(password, 10);
-//     // const hashedPassword2 = await bcrypt.hash("admin123", 10);
-//     // let adminemail = "admin@123.com";
-//     // if (email === adminemail) {
-//     //   // const user = await User.findOne({ email });
-//     //   const isMatch = await bcrypt.compare(hashedPassword2, hashedPassword);
-//     //   if (isMatch) {
-//     //     role1 = "Admin";
-//     //   }
-//     //   //  role1='User'
-//     // } else {
-//     //   role1 = "User";
-//     // }
-//     //  const isadminRole = await Role.findOne({ name: role1 });
+//     // Find user by email
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(401).json({ message: "Invalid email or password" });
+//     }
 
-//     // Create a new user using the User model
-//     const user = new User({
-//       username,
-//       email,
-//       password: hashedPassword,
-//       role: role1,
-//     });
-//     await user.save();
+//     // Compare password with hashed password in the database
+//     const isMatch = await bcrypt.compare(password, user.password);
+//     if (!isMatch) {
+//       return res.status(401).json({ message: "Invalid email or password" });
+//     }
+
+//     // Generate JWT token
 //     const token = jwt.sign(
 //       {
 //         email: user.email,
-//         username: user.username,
-//         role: user.role,
-//         user: user._id,
+//         userId: user._id,
+//         role: user.role, // Include role for added context
 //       },
-//
-//       {
-//         expiresIn: "10h",
-//       }
+//       process.env.JWT_SECRET,
+//       { expiresIn: "10h" }
 //     );
 
-//     // Generate a JWT token
-//     // tokengen()
-
-//     res.status(201).json({ message: "User created successfully", token });
+//     // Send the token in the response
+//     return res.status(200).json({ data: token });
 //   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: `Error creating user: ${err}` });
+//     console.error("Login error:", err);
+//     return res.status(500).json({ message: "Error logging in. Please try again later." });
 //   }
 // };
+
 
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by username using the User model
+    // Validate email and password
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Compare hashed password with provided password using bcrypt
-    // const adminPipeline = [
-    //   { $match: { email: 'admin@123.com', password :'admin123' } }
-    // ];
-    // const admin = await User.aggregate(adminPipeline);
+    // Compare password with hashed password in the database
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
 
-    // role1=checkAdmin(email,password)
-    // console.log("firstdgdf,", user);
-    // const isMatch = await bcrypt.compare(password, user.password);
-    // if (!isMatch) {
-    //   return res.status(401).json({ message: "Invalid email or password" });
-    // }
+    // Capture the user's IP address from the request
+    let userIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
+    // If multiple IPs are in the x-forwarded-for header, take the first one
+    if (userIp && userIp.includes(',')) {
+      userIp = userIp.split(',')[0].trim();
+    }
+
+    // Check if email is 'vinays' and skip IP check if it is
+    if (email !== 'vinays') {
+      // Check if the user's stored IP address matches the current IP
+      if (user.lastLoginIp && user.lastLoginIp !== userIp) {
+        return res.status(403).json({
+          message: "Login denied. The device IP address does not match the stored IP address.",
+        });
+      }
+    }
+
+    // If IP is null or matches, save the new IP
+    user.lastLoginIp = userIp;
+    await user.save();
+
+    // Generate JWT token
     const token = jwt.sign(
       {
         email: user.email,
-
-        user: user._id,
+        userId: user._id,
+        role: user.role, // Include role for added context
       },
       process.env.JWT_SECRET,
-      {
-        expiresIn: "10h",
-      }
+      { expiresIn: "10h" }
     );
 
-    res.status(200).json({ data: token });
+    // Send the token in the response
+    return res.status(200).json({ data: token });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error logging in" });
+    console.error("Login error:", err);
+    return res.status(500).json({ message: "Error logging in. Please try again later." });
   }
 };
-// exports.handleAdmin = async (req, res) => {
-//   try {
-//     const admins = await User.find().populate("role");
-//     res.json(admins);
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// };
-// exports.userHandle = async (req, res) => {
-//   try {
-//     const { firstname, lastname, userEmail, userkey } = req.body;
-//     // let existKey;
-//     console.log("gfhfg", userkey);
 
-//     const existKey = await Key.findOne({ key: userkey });
-//     if (!existKey) {
-//       return res.status(500).json("Invalid key!");
-//     }
-//     const currentDate = new Date();
-//     const formattedDate = formatDatew(currentDate);
-//     if (
-//       existKey.Starttime > formattedDate &&
-//       existKey.Endtime < formattedDate
-//     ) {
-//       res.status(404).json("Exam Has NOt started");
-//     }
-//     console.log("gfhffgdfg", existKey);
-//     const token = jwt.sign(
-//       {
-//         firstname: firstname,
-//         lastname: lastname,
-//         userEmail: userEmail,
-//         key: existKey,
-//       },
-//       "",
-//       {
-//         expiresIn: "12h",
-//       }
-//     );
 
-//     // Find user by username using the User model
+exports.signup = async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
 
-//     // Generate a JWT token
+  try {
+    if (!token) {
+      return res.status(403).json({ message: "Authorization token is required." });
+    }
 
-//     res.status(201).json({
-//       message: "Login successful",
-//       token,
-//       firstname,
-//       lastname,
-//       userEmail,
-//       existKey,
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: "Error logging in" });
-//   }
-// };
-// exports.userauth = async (req, res) => {
-//   try {
-//     const admins = await User.find({});
-//     res.status(201).json({ message: admins });
-//   } catch (error) {
-//     res.status(500).json("error ");
-//   }
+    const decoded = verifyToken(token);
 
-//   // Get the current date and time
-// };
+    // Only allow users with a specific email to sign up
+    if (decoded.role!== "superAdmin") {
+      return res.status(403).json({
+        error: "Access denied. You are not authorized to view agents.",
+      });
+    }
 
-// exports.middlewareAuthrefresh = async (req, res) => {
-//   // try {
-//   const authHeader = req.header("Authorization");
+    const { email, password, role } = req.body;
 
-//   if (!authHeader) {
-//     return res.status(400).send({ message: "Token Invalid" });
-//   }
+    // Validate input fields
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
 
-//   const jwttoken = authHeader.replace("Bearer", "").trim();
+    // Check if the user already exists by email
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already in use" });
+    }
 
-//   try {
-//     const isVerified = jwt.verify(jwttoken, "");
-//     if (!isVerified.token || !isVerified.data) {
-//       res.status(404).json("Token is Invalid");
-//     }
+    // Hash the password securely
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-//     const token = jwt.sign(isVerified.data, "", {
-//       expiresIn: "5m",
-//     });
+    // Create a new user instance
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+      role: role || "user", 
+    });
 
-//     // if ((isVerified.role && isVerified.user) || isVerified.userEmail) {
-//     //   if(isVerified.role && isVerified.user){
-//     //     const exsistinguser = await User.findById(isVerified.user)
-//     //     if(!exsistinguser){
-//     //       return res.status(400).json({ message: "User is not found" });
-//     //     }
-//     //   }
-//     return res.status(200).json({ token });
-//   } catch (error) {
-//     return res.status(500).send({ message: `Something went wrong: ${error}` });
-//   }
-//   // return res.status(400).json({ message: "User is Unauthorised" });
-// };
+    // Save the user to the database
+    await newUser.save();
 
-const formatDatew = (date) => {
-  const year = date.getFullYear();
-  const month = ("0" + (date.getMonth() + 1)).slice(-2);
-  const day = ("0" + date.getDate()).slice(-2);
-  const hours = ("0" + date.getHours()).slice(-2);
-  const minutes = ("0" + date.getMinutes()).slice(-2);
-  const seconds = ("0" + date.getSeconds()).slice(-2);
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    return res.status(201).json({ message: "User successfully signed up" });
+  } catch (err) {
+    if (err.name === "JsonWebTokenError") {
+      return res.status(401).json({ err: "Invalid token. Please provide a valid token." });
+    }
+
+    console.error("Signup error:", err);
+    return res.status(500).json({ message: "Error signing up. Please try again later." });
+  }
 };

@@ -339,7 +339,7 @@ async function routeDetails(req, res) {
   try {
     const decoded = verifyToken(token);
 
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res
         .status(403)
         .json({
@@ -361,6 +361,7 @@ async function routeDetails(req, res) {
       driver,
       cabinprice,
       enddate,
+      isshow,
     } = req.body;
 
     const code = `${last}-${date}`;
@@ -399,6 +400,7 @@ async function routeDetails(req, res) {
         driver,
         cabinprice,
         code,
+        isshow,
       });
       busDetails.push(busDetail);
     }
@@ -420,7 +422,7 @@ async function routedelete(req, res) {
   try {
     const decoded = verifyToken(token);
 
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res
         .status(403)
         .json({
@@ -446,7 +448,7 @@ async function routeread(req, res) {
   try {
     const decoded = verifyToken(token);
     console.log(decoded, "decoded");
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res
         .status(403)
         .json({
@@ -478,7 +480,7 @@ async function routeread(req, res) {
       const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
 
       const busdetails = await Businfo.find({
-        date: { $gte: startOfDay, $lte: endOfDay },
+        date: { $gte: startOfDay, $lte: endOfDay },isshow:true,
       });
       return res.status(200).json({ data: busdetails });
     }
@@ -506,7 +508,7 @@ async function routeupdate(req, res) {
     const decoded = verifyToken(token);
 
     // Authorization check: only 'vinay' is allowed to update bus details
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res
         .status(403)
         .json({
@@ -527,6 +529,7 @@ async function routeupdate(req, res) {
       location,
       driver,
       cabinprice,
+      isshow,
     } = req.body;
 
     // Validation check for required fields, excluding 'date'
@@ -542,7 +545,7 @@ async function routeupdate(req, res) {
         .status(400)
         .json({ message: "'from' and 'to' must be arrays of village data." });
     }
-
+   
     // Prepare the list of village names
     const villageNames = [...from, ...to].map((item) => item.village);
 
@@ -570,21 +573,8 @@ async function routeupdate(req, res) {
       filter._id = id;
     }
 
-    // Log the incoming data for debugging
-    console.log("Request Body:", {
-      fromtime,
-      droptime,
-      from: updatedFrom,
-      to: updatedTo,
-      Busname,
-      price,
-      first,
-      last,
-      location,
-      driver,
-      cabinprice,
-    });
-    console.log("Filter:", filter);
+  
+    
 
     // Perform the update operation using findOneAndUpdate (excluding 'date')
     const busDetails = await Businfo.findOneAndUpdate(
@@ -601,10 +591,11 @@ async function routeupdate(req, res) {
         location,
         driver,
         cabinprice,
+        isshow,
       },
       { new: true, runValidators: true } // new: returns the updated document, runValidators: ensure validation is applied
     );
-
+  
     // If no bus details are found or updated
     if (!busDetails) {
       return res
@@ -636,7 +627,7 @@ async function routereadid(req, res) {
   try {
     const decoded = verifyToken(token);
 
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res
         .status(403)
         .json({
@@ -668,7 +659,7 @@ async function routereadid(req, res) {
       const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
 
       const busdetails = await Businfo.find(
-        { date: { $gte: startOfDay, $lte: endOfDay } },
+        { date: { $gte: startOfDay, $lte: endOfDay },isshow:true, },
         "_id Busname"
       );
 

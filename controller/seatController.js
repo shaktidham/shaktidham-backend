@@ -6,12 +6,12 @@ const jwt = require("jsonwebtoken");
 async function allocateSeats(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
-    // const decoded = verifyToken(token);
-    // if (decoded.email !== "vinay") {
-    //   return res.status(403).json({
-    //     error: "Access denied. You are not authorized to view agents.",
-    //   });
-    // }
+    const decoded = verifyToken(token);
+    if (decoded.role!== "superAdmin") {
+      return res.status(403).json({
+        error: "Access denied. You are not authorized to view agents.",
+      });
+    }
     const {
       seatNumber,
       name,
@@ -25,6 +25,7 @@ async function allocateSeats(req, res) {
       price,
       date,
       extradetails,
+      bookedBy,
     } = req.body;
 
     // Check if seatNumber is provided and is a valid string or array
@@ -103,6 +104,7 @@ async function allocateSeats(req, res) {
         gender: gender,
         mobile: mobile,
         extradetails: extradetails,
+        bookedBy:bookedBy,
         date: date,
         seatNumber: seatNumber.trim(), // Trim any extra whitespace for consistency
         route: existingRoute._id, // Associate with the existing route
@@ -134,7 +136,7 @@ async function allseats(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -154,7 +156,7 @@ async function deleteseat(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -175,7 +177,7 @@ async function updateseat(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });

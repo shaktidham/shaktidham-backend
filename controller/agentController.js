@@ -122,7 +122,7 @@ async function createAgent(req, res) {
     const decoded = verifyToken(token);
     
     // Authorization check: Only "vinay" can create agents
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to create agents.",
       });
@@ -153,7 +153,7 @@ async function getAgent(req, res) {
     const decoded = verifyToken(token);
     
     // Authorization check: Only "vinay" can fetch agents
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -188,7 +188,7 @@ async function updateAgentById(req, res) {
     const decoded = verifyToken(token);
     
     // Authorization check: Only "vinay" can update agents
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to update agent details.",
       });
@@ -233,7 +233,7 @@ async function deleteAgentById(req, res) {
     const decoded = verifyToken(token);
     
     // Authorization check: Only "vinay" can delete agents
-    if (decoded.email !== "vinay") {
+    if (decoded.role!== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to delete agent details.",
       });
