@@ -339,12 +339,10 @@ async function routeDetails(req, res) {
   try {
     const decoded = verifyToken(token);
 
-    if (decoded.role!== "superAdmin") {
-      return res
-        .status(403)
-        .json({
-          error: "Access denied. You are not authorized to update bus details.",
-        });
+    if (decoded.role !== "superAdmin") {
+      return res.status(403).json({
+        error: "Access denied. You are not authorized to update bus details.",
+      });
     }
 
     const {
@@ -422,12 +420,10 @@ async function routedelete(req, res) {
   try {
     const decoded = verifyToken(token);
 
-    if (decoded.role!== "superAdmin") {
-      return res
-        .status(403)
-        .json({
-          error: "Access denied. You are not authorized to update bus details.",
-        });
+    if (decoded.role !== "superAdmin") {
+      return res.status(403).json({
+        error: "Access denied. You are not authorized to update bus details.",
+      });
     }
 
     await Businfo.findByIdAndDelete(req.params.id);
@@ -443,18 +439,18 @@ async function routedelete(req, res) {
 }
 
 async function routeread(req, res) {
-  const token = req.headers.authorization?.split(" ")[1];
+  // const token = req.headers.authorization?.split(" ")[1];
 
   try {
-    const decoded = verifyToken(token);
-    console.log(decoded, "decoded");
-    if (decoded.role!== "superAdmin") {
-      return res
-        .status(403)
-        .json({
-          error: "Access denied. You are not authorized to view bus details.",
-        });
-    }
+    // const decoded = verifyToken(token);
+    // console.log(decoded, "decoded");
+    // if (decoded.role!== "superAdmin") {
+    //   return res
+    //     .status(403)
+    //     .json({
+    //       error: "Access denied. You are not authorized to view bus details.",
+    //     });
+    // }
 
     const { date, id } = req.query;
 
@@ -508,12 +504,10 @@ async function routeupdate(req, res) {
     const decoded = verifyToken(token);
 
     // Authorization check: only 'vinay' is allowed to update bus details
-    if (decoded.role!== "superAdmin") {
-      return res
-        .status(403)
-        .json({
-          error: "Access denied. You are not authorized to update bus details.",
-        });
+    if (decoded.role !== "superAdmin") {
+      return res.status(403).json({
+        error: "Access denied. You are not authorized to update bus details.",
+      });
     }
 
     // Extract data from the request body
@@ -545,7 +539,7 @@ async function routeupdate(req, res) {
         .status(400)
         .json({ message: "'from' and 'to' must be arrays of village data." });
     }
-   
+
     // Prepare the list of village names
     const villageNames = [...from, ...to].map((item) => item.village);
 
@@ -573,9 +567,6 @@ async function routeupdate(req, res) {
       filter._id = id;
     }
 
-  
-    
-
     // Perform the update operation using findOneAndUpdate (excluding 'date')
     const busDetails = await Businfo.findOneAndUpdate(
       filter,
@@ -595,7 +586,7 @@ async function routeupdate(req, res) {
       },
       { new: true, runValidators: true } // new: returns the updated document, runValidators: ensure validation is applied
     );
-  
+
     // If no bus details are found or updated
     if (!busDetails) {
       return res
@@ -627,12 +618,10 @@ async function routereadid(req, res) {
   try {
     const decoded = verifyToken(token);
 
-    if (decoded.role!== "superAdmin") {
-      return res
-        .status(403)
-        .json({
-          error: "Access denied. You are not authorized to view bus details.",
-        });
+    if (decoded.role !== "superAdmin") {
+      return res.status(403).json({
+        error: "Access denied. You are not authorized to view bus details.",
+      });
     }
 
     const { date, id } = req.query;
@@ -659,7 +648,7 @@ async function routereadid(req, res) {
       const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999));
 
       const busdetails = await Businfo.find(
-        { date: { $gte: startOfDay, $lte: endOfDay }, },
+        { date: { $gte: startOfDay, $lte: endOfDay } },
         "_id Busname"
       );
 

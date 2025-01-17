@@ -1,5 +1,5 @@
 const Villageinfo = require("../models/villageadd");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const verifyToken = (token) => {
   if (!token) throw new Error("Authorization token is required.");
   return jwt.verify(token, process.env.JWT_SECRET);
@@ -9,43 +9,43 @@ async function villageDetails(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
     }
-    
+
     const { village, point, evillage } = req.body;
 
     // Ensure all required fields are provided
     if (!village || !point || !evillage) {
-      return res.status(400).json({ error: "Village, Point, and Evillage are required." });
+      return res
+        .status(400)
+        .json({ error: "Village, Point, and Evillage are required." });
     }
 
     // Create the village document
-    const villagecreate = await Villageinfo.create({ village, point, evillage });
+    const villagecreate = await Villageinfo.create({
+      village,
+      point,
+      evillage,
+    });
     res.status(200).json({ data: villagecreate });
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
-    res.status(500).json({ error: `Error while creating details: ${error.message}` });
+    res
+      .status(500)
+      .json({ error: `Error while creating details: ${error.message}` });
   }
 }
 
-
 async function villageread(req, res) {
-  const token = req.headers.authorization?.split(" ")[1];
-
-   
   try {
-    const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
-      return res.status(403).json({
-        error: "Access denied. You are not authorized to view agents.",
-      });
-    }
-    const { search = '', order = 'asc' } = req.query;
+    const { search = "", order = "asc" } = req.query;
     let { limit, page } = req.query;
 
     const limitNum = limit ? parseInt(limit) : null;
@@ -60,19 +60,21 @@ async function villageread(req, res) {
 
     // Add search for `evillage` field
     const searchFilter = search
-      ? { 
+      ? {
           $or: [
-            { village: { $regex: search, $options: 'i' } },
-            { point: { $regex: search, $options: 'i' } },
-            { evillage: { $regex: search, $options: 'i' } }  // Search `evillage` field too
-          ]
+            { village: { $regex: search, $options: "i" } },
+            { point: { $regex: search, $options: "i" } },
+            { evillage: { $regex: search, $options: "i" } }, // Search `evillage` field too
+          ],
         }
       : {};
 
-    const sortOrder = order === 'desc' ? -1 : 1;
-    const sortField = 'village';
+    const sortOrder = order === "desc" ? -1 : 1;
+    const sortField = "village";
 
-    const query = Villageinfo.find(searchFilter).sort({ [sortField]: sortOrder });
+    const query = Villageinfo.find(searchFilter).sort({
+      [sortField]: sortOrder,
+    });
 
     if (limitNum !== null && pageNum !== null) {
       const skip = (pageNum - 1) * limitNum;
@@ -81,7 +83,8 @@ async function villageread(req, res) {
 
     const villages = await query;
     const totalEntries = await Villageinfo.countDocuments(searchFilter);
-    const totalPages = limitNum !== null ? Math.ceil(totalEntries / limitNum) : 1;
+    const totalPages =
+      limitNum !== null ? Math.ceil(totalEntries / limitNum) : 1;
 
     res.status(200).json({
       data: villages,
@@ -91,21 +94,17 @@ async function villageread(req, res) {
       limit: limitNum || totalEntries,
     });
   } catch (error) {
-    if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
-    }
-    res.status(500).json({ error: `Error while reading details: ${error.message}` });
+    res
+      .status(500)
+      .json({ error: `Error while reading details: ${error.message}` });
   }
 }
-
-
-
 
 async function villagedelete(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -117,9 +116,13 @@ async function villagedelete(req, res) {
     res.status(200).json({ message: "Village deleted successfully." });
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
-    res.status(500).json({ error: `Error while deleting details: ${error.message}` });
+    res
+      .status(500)
+      .json({ error: `Error while deleting details: ${error.message}` });
   }
 }
 
@@ -127,7 +130,7 @@ async function villageUpdate(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -136,8 +139,9 @@ async function villageUpdate(req, res) {
 
     // Ensure all required fields are provided
     if (!village || !point || !evillage) {
-
-      return res.status(400).json({ error: "Village, Point, and Evillage are required." });
+      return res
+        .status(400)
+        .json({ error: "Village, Point, and Evillage are required." });
     }
 
     // Update the village document
@@ -155,11 +159,14 @@ async function villageUpdate(req, res) {
     res.status(200).json({ data: updatedVillage });
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
-    res.status(500).json({ error: `Error while updating details: ${error.message}` });
+    res
+      .status(500)
+      .json({ error: `Error while updating details: ${error.message}` });
   }
 }
-
 
 module.exports = { villageDetails, villageread, villagedelete, villageUpdate };
