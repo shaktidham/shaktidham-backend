@@ -568,7 +568,7 @@ async function routeupdate(req, res) {
     }
 
     // Perform the update operation using findOneAndUpdate (excluding 'date')
-    const busDetails = await Businfo.findOneAndUpdate(
+    const busDetails = await Businfo.updateMany(
       filter,
       {
         fromtime,
