@@ -527,7 +527,7 @@ async function routeupdate(req, res) {
     } = req.body;
 
     // Validation check for required fields, excluding 'date'
-    if (!from || !to || !Busname || !price) {
+    if (!from || !to) {
       return res
         .status(400)
         .json({ message: "All required fields must be provided." });
