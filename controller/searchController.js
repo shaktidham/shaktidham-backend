@@ -913,7 +913,27 @@ async function getSeatsByMobile(req, res) {
           seatCount: {
             $size: {
               $filter: {
-                input: "$seatNumbersArray",
+                input: {
+                  $reduce: {
+                    input: {
+                      $map: {
+                        input: "$seatNumbersArray",
+                        as: "seat",
+                        in: {
+                          $cond: {
+                            if: {
+                              $regexMatch: { input: "$$seat", regex: /\./ }, // Check for a dot in the seat number
+                            },
+                            then: { $split: ["$$seat", "."] }, // Split "3.4" into ["3", "4"]
+                            else: ["$$seat"], // Keep single seats as is
+                          },
+                        },
+                      },
+                    },
+                    initialValue: [],
+                    in: { $concatArrays: ["$$value", "$$this"] }, // Flatten the array
+                  },
+                },
                 as: "seat",
                 cond: {
                   $not: {
