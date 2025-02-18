@@ -2,7 +2,7 @@ const bookedseat = require("../models/bookedseat");
 const SeatModel = require("../models/bookedseat");
 const Businfo = require("../models/busInfo");
 const Routeinfo = require("../models/routeinfo");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const verifyToken = (token) => {
   if (!token) throw new Error("Authorization token is required.");
@@ -23,7 +23,9 @@ async function getsearchAll(req, res) {
         return res.status(404).json({ error: "Route not found." });
       }
     } catch (err) {
-      return res.status(500).json({ error: "Error fetching routeinfo from DB: " + err.message });
+      return res
+        .status(500)
+        .json({ error: "Error fetching routeinfo from DB: " + err.message });
     }
 
     // Handle date filter if provided
@@ -33,7 +35,9 @@ async function getsearchAll(req, res) {
       const dateValue = new Date(formattedDateStr);
 
       if (isNaN(dateValue)) {
-        return res.status(400).json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+        return res
+          .status(400)
+          .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
       }
 
       // Create start and end of the day
@@ -94,13 +98,11 @@ async function getsearchAll(req, res) {
   }
 }
 
-
-
 async function getsearchBus(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -171,7 +173,9 @@ async function getsearchBus(req, res) {
     });
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
     return res.status(500).json({ error: error.message });
   }
@@ -180,7 +184,7 @@ async function getsearchAllByseat(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -455,12 +459,13 @@ async function getsearchAllByseat(req, res) {
     });
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
     return res.status(500).json({ error: error.message });
   }
 }
-
 
 const ticketsearch = async (req, res) => {
   const { date, mobile } = req.body;
@@ -535,13 +540,11 @@ const ticketsearch = async (req, res) => {
   }
 };
 
-
-
 async function getSeatsByDate(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -575,7 +578,9 @@ async function getSeatsByDate(req, res) {
       routeQuery._id = route;
     }
 
-    const routes = await Routeinfo.find(routeQuery).select("_id Busname date driver price cabinprice location last");
+    const routes = await Routeinfo.find(routeQuery).select(
+      "_id Busname date driver price cabinprice location last"
+    );
 
     // If no routes are found for the given date (and optionally route), return a message
     if (routes.length === 0) {
@@ -610,9 +615,9 @@ async function getSeatsByDate(req, res) {
         pickuptime: seat.pickuptime,
         price: seat.price,
         age: seat.age,
-        bookedBy:seat.bookedBy,
+        bookedBy: seat.bookedBy,
         id: seat._id,
-        createdAt:seat.createdAt
+        createdAt: seat.createdAt,
       });
 
       // Check if the seat is a "કેબિન-X" type
@@ -666,7 +671,9 @@ async function getSeatsByDate(req, res) {
     return res.status(200).json(response);
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
     return res.status(500).json({ error: "Server error: " + error.message });
   }
@@ -676,7 +683,7 @@ async function getchartprint(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -714,7 +721,9 @@ async function getchartprint(req, res) {
     return res.status(200).json(response);
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
     return res.status(500).json({ error: "Server error: " + error.message });
   }
@@ -736,12 +745,14 @@ function parseTimeToMinutes(time) {
 async function getSeatsByMobile(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
-    return res.status(400).json({ error: "Token is required. Please provide a valid token." });
+    return res
+      .status(400)
+      .json({ error: "Token is required. Please provide a valid token." });
   }
   try {
     const decoded = verifyToken(token);
-    console.log(decoded,"decoded");
-    if (decoded.role!== "superAdmin") {
+
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -759,6 +770,81 @@ async function getSeatsByMobile(req, res) {
     const endOfDay = new Date(dateValue.setHours(23, 59, 59, 999)); // End of the day
 
     // Query the database for seats within the date range (start and end of day)
+    // const seats = await SeatModel.aggregate([
+    //   {
+    //     $match: {
+    //       date: { $gte: startOfDay, $lte: endOfDay }, // Date range query
+    //     },
+    //   },
+    //   {
+    //     $sort: { pickuptime: 1 },
+    //   },
+    //   {
+    //     $group: {
+    //       _id: { mobile: "$mobile", route: "$route" }, // Group by mobile number and route
+    //       seatNumbersArray: { $push: "$seatNumber" }, // Collect all seat numbers for the group
+    //       pickuptimeArray: { $push: "$pickuptime" }, // Collect all pickuptime for the group
+    //       pickupArray: { $push: "$pickup" }, // Collect all pickup locations for the group
+    //       from: { $first: "$from" }, // From location (since it’s the same for the same route)
+    //       to: { $first: "$to" }, // To location (same as above)
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       mobile: "$_id.mobile",
+    //       route: "$_id.route",
+    //       seatNumbers: "$seatNumbersArray", // Array of seat numbers
+    //       pickuptime: { $setUnion: ["$pickuptimeArray", []] }, // Remove duplicates from pickuptime
+    //       pickup: { $setUnion: ["$pickupArray", []] }, // Remove duplicates from pickup
+    //       from: 1,
+    //       to: 1,
+    //       // Calculate cabinCount using a regex to filter "કેબિન" entries
+    //       cabinCount: {
+    //         $size: {
+    //           $filter: {
+    //             input: "$seatNumbersArray",
+    //             as: "seat",
+    //             cond: { $regexMatch: { input: "$$seat", regex: /^કેબિન/ } },
+    //           },
+    //         },
+    //       },
+    //       // Calculate seatCount by counting each seat, excluding "કેબિન" seats
+    //       seatCount: {
+    //         $size: {
+    //           $filter: {
+    //             input: {
+    //               $reduce: {
+    //                 input: {
+    //                   $map: {
+    //                     input: "$seatNumbersArray",
+    //                     as: "seat",
+    //                     in: {
+    //                       $cond: {
+    //                         if: {
+    //                           $regexMatch: { input: "$$seat", regex: /\./ }, // Check for a dot in the seat number
+    //                         },
+    //                         then: { $split: ["$$seat", "."] }, // Split "3.4" into ["3", "4"]
+    //                         else: ["$$seat"], // Keep single seats as is
+    //                       },
+    //                     },
+    //                   },
+    //                 },
+    //                 initialValue: [],
+    //                 in: { $concatArrays: ["$$value", "$$this"] }, // Flatten the array
+    //               },
+    //             },
+    //             as: "seat",
+    //             cond: {
+    //               $not: {
+    //                 $regexMatch: { input: "$$seat", regex: /^કેબિન/ }, // Exclude "કેબિન" seats from the count
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+    // ]);
     const seats = await SeatModel.aggregate([
       {
         $match: {
@@ -766,25 +852,54 @@ async function getSeatsByMobile(req, res) {
         },
       },
       {
+        $sort: { pickuptime: 1 }, // Sort by pickuptime in ascending order
+      },
+      {
         $group: {
           _id: { mobile: "$mobile", route: "$route" }, // Group by mobile number and route
           seatNumbersArray: { $push: "$seatNumber" }, // Collect all seat numbers for the group
           pickuptimeArray: { $push: "$pickuptime" }, // Collect all pickuptime for the group
           pickupArray: { $push: "$pickup" }, // Collect all pickup locations for the group
-          from: { $first: "$from" }, // From location (since it’s the same for the same route)
-          to: { $first: "$to" }, // To location (same as above)
+          from: { $first: "$from" }, // From location (same for same route)
+          to: { $first: "$to" }, // To location (same for same route)
         },
       },
       {
         $project: {
           mobile: "$_id.mobile",
           route: "$_id.route",
-          seatNumbers: "$seatNumbersArray", // Array of seat numbers
-          pickuptime: { $setUnion: ["$pickuptimeArray", []] }, // Remove duplicates from pickuptime
-          pickup: { $setUnion: ["$pickupArray", []] }, // Remove duplicates from pickup
+          seatNumbers: "$seatNumbersArray",
+          // Remove duplicates from pickupArray using $reduce
+          pickup: {
+            $reduce: {
+              input: "$pickupArray",
+              initialValue: [],
+              in: {
+                $cond: {
+                  if: { $in: ["$$this", "$$value"] },
+                  then: "$$value",
+                  else: { $concatArrays: ["$$value", ["$$this"]] },
+                },
+              },
+            },
+          },
+          // Remove duplicates from pickuptimeArray using $reduce
+          pickuptime: {
+            $reduce: {
+              input: "$pickuptimeArray",
+              initialValue: [],
+              in: {
+                $cond: {
+                  if: { $in: ["$$this", "$$value"] },
+                  then: "$$value",
+                  else: { $concatArrays: ["$$value", ["$$this"]] },
+                },
+              },
+            },
+          },
           from: 1,
           to: 1,
-          // Calculate cabinCount using a regex to filter "કેબિન" entries
+          // Calculate cabinCount using regex to filter "કેબિન" entries
           cabinCount: {
             $size: {
               $filter: {
@@ -798,27 +913,7 @@ async function getSeatsByMobile(req, res) {
           seatCount: {
             $size: {
               $filter: {
-                input: {
-                  $reduce: {
-                    input: {
-                      $map: {
-                        input: "$seatNumbersArray",
-                        as: "seat",
-                        in: {
-                          $cond: {
-                            if: {
-                              $regexMatch: { input: "$$seat", regex: /\./ }, // Check for a dot in the seat number
-                            },
-                            then: { $split: ["$$seat", "."] }, // Split "3.4" into ["3", "4"]
-                            else: ["$$seat"], // Keep single seats as is
-                          },
-                        },
-                      },
-                    },
-                    initialValue: [],
-                    in: { $concatArrays: ["$$value", "$$this"] }, // Flatten the array
-                  },
-                },
+                input: "$seatNumbersArray",
                 as: "seat",
                 cond: {
                   $not: {
@@ -830,8 +925,20 @@ async function getSeatsByMobile(req, res) {
           },
         },
       },
+      {
+        $project: {
+          mobile: 1,
+          route: 1,
+          seatNumbers: 1,
+          pickuptime: 1,
+          pickup: 1,
+          from: 1,
+          to: 1,
+          cabinCount: 1,
+          seatCount: 1,
+        },
+      },
     ]);
-
     // If no seats are found, find the matching routes based on the date
     if (seats.length === 0) {
       // Query for routes that match the date range, but without filtering by route
@@ -876,7 +983,9 @@ async function getSeatsByMobile(req, res) {
     return res.status(200).json(response);
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
     return res.status(500).json({ error: "Server error: " + error.message });
   }
@@ -886,7 +995,7 @@ async function getLastBookedSeat(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -924,7 +1033,9 @@ async function getLastBookedSeat(req, res) {
     return res.status(200).json(seats);
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({ error: "Invalid token. Please provide a valid token." });
+      return res
+        .status(401)
+        .json({ error: "Invalid token. Please provide a valid token." });
     }
     return res.status(500).json({ error: "Server error" });
   }
@@ -933,7 +1044,7 @@ async function getLastBookedSeat(req, res) {
 async function getsearchRouteByvillage(req, res) {
   try {
     const { date, from, to } = req.query;
-console.log(from,to,date);
+    console.log(from, to, date);
     // Initialize the filter object
     const filter = {};
 
@@ -942,15 +1053,33 @@ console.log(from,to,date);
       const dateValue = new Date(date);
       if (!isNaN(dateValue.getTime())) {
         // Create separate Date objects for start and end of the day
-        const startOfDay = new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate(), 0, 0, 0, 0);
-        const endOfDay = new Date(dateValue.getFullYear(), dateValue.getMonth(), dateValue.getDate(), 23, 59, 59, 999);
+        const startOfDay = new Date(
+          dateValue.getFullYear(),
+          dateValue.getMonth(),
+          dateValue.getDate(),
+          0,
+          0,
+          0,
+          0
+        );
+        const endOfDay = new Date(
+          dateValue.getFullYear(),
+          dateValue.getMonth(),
+          dateValue.getDate(),
+          23,
+          59,
+          59,
+          999
+        );
 
         filter.date = {
           $gte: startOfDay,
           $lte: endOfDay,
         };
       } else {
-        return res.status(400).json({ error: "Invalid date format. Please use YYYY-MM-DD." });
+        return res
+          .status(400)
+          .json({ error: "Invalid date format. Please use YYYY-MM-DD." });
       }
     }
 
@@ -979,9 +1108,6 @@ console.log(from,to,date);
     res.status(500).json({ error: `Error: ${error.message}` });
   }
 }
-
-
-
 
 module.exports = {
   getsearchAll,
