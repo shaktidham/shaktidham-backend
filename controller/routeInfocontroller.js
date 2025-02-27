@@ -52,6 +52,7 @@ async function routeDetails(req, res) {
       Busname,
       location,
       driver,
+      phonenumber,
       cabinprice,
       enddate,
       isshow,
@@ -90,6 +91,7 @@ async function routeDetails(req, res) {
         first,
         last,
         location,
+        phonenumber,
         driver,
         cabinprice,
         code,
@@ -217,6 +219,7 @@ async function routeupdate(req, res) {
       Busname,
       location,
       driver,
+      phonenumber,
       cabinprice,
       isshow,
     } = req.body;
@@ -312,6 +315,7 @@ async function routeupdate(req, res) {
         last,
         location,
         driver,
+        phonenumber,
         cabinprice,
         isshow,
       };

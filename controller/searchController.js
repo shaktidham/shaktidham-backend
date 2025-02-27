@@ -579,7 +579,7 @@ async function getSeatsByDate(req, res) {
     }
 
     const routes = await Routeinfo.find(routeQuery).select(
-      "_id Busname date driver price cabinprice location last"
+      "_id Busname date driver phonenumber price cabinprice location last"
     );
 
     // If no routes are found for the given date (and optionally route), return a message
@@ -660,6 +660,7 @@ async function getSeatsByDate(req, res) {
           cabinprice: route.cabinprice, // Ensure cabinprice is included here
           location: route.location,
           driver: route.driver,
+          phonenumber: route.phonenumber,
           cabinCount: cabinCount, // Include the cabin seat count
           count: count, // Include the normal seat count
           passengers: passengers, // Include the passengers (empty or not)
