@@ -4,6 +4,7 @@ const {
   allseats,
   updateseat,
   deleteseat,
+  pdfphone,
 } = require("../controller/seatController");
 const {
   getsearchAll,
@@ -20,7 +21,7 @@ const router = express.Router();
 
 router.post("/create/:id", allocateSeats);
 router.get("/read", allseats);
-
+router.get("/pdf", pdfphone);
 router.put("/update/:id", updateseat);
 router.delete("/delete/:id", deleteseat);
 router.get("/search", getsearchAll);

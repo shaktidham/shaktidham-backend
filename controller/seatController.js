@@ -13,7 +13,7 @@ async function allocateSeats(req, res) {
         error: "Access denied. You are not authorized to view agents.",
       });
     }
-    
+
     const {
       seatNumber,
       name,
@@ -106,7 +106,7 @@ async function allocateSeats(req, res) {
         gender: gender,
         mobile: mobile,
         extradetails: extradetails,
-        bookedBy:bookedBy,
+        bookedBy: bookedBy,
         date: date,
         seatNumber: seatNumber.trim(), // Trim any extra whitespace for consistency
         route: existingRoute._id, // Associate with the existing route
@@ -138,7 +138,7 @@ async function allseats(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -158,7 +158,7 @@ async function deleteseat(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -179,7 +179,7 @@ async function updateseat(req, res) {
   const token = req.headers.authorization?.split(" ")[1];
   try {
     const decoded = verifyToken(token);
-    if (decoded.role!== "superAdmin") {
+    if (decoded.role !== "superAdmin") {
       return res.status(403).json({
         error: "Access denied. You are not authorized to view agents.",
       });
@@ -255,5 +255,49 @@ async function updateseat(req, res) {
       .json({ message: `Error while updating seat: ${error.message}` });
   }
 }
+async function pdfphone(req, res) {
+  try {
+    const { date, code } = req.body;
 
-module.exports = { allocateSeats, allseats, updateseat, deleteseat };
+    // Check if a date is provided, otherwise use current date
+    const currentDate = date ? new Date(date) : new Date();
+
+    // Check if the date is valid
+    if (isNaN(currentDate)) {
+      return res.status(400).json({ error: "Invalid date format." });
+    }
+
+    // Generate a code between 100 and 120 for each phone number
+    const generatedCode = Math.floor(Math.random() * (120 - 100 + 1)) + 100;
+
+    // Find all records where the date matches the current date
+    const phoneEntries = await SeatModel.findAll({
+      where: {
+        // Assuming `date` field exists and stores the date for each phone number
+        date: {
+          [Op.eq]: currentDate.toISOString().split("T")[0], // Only compare the date part (YYYY-MM-DD)
+        },
+      },
+    });
+
+    if (phoneEntries.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No phone numbers found for the given date." });
+    }
+
+    // Respond with the mobile numbers and the generated code
+    const response = phoneEntries.map((entry) => ({
+      number: entry.number,
+      code: generatedCode,
+    }));
+
+    res.status(200).json(response);
+  } catch (error) {
+    res.status(500).json({
+      error: `Error while retrieving phone number data: ${error.message}`,
+    });
+  }
+}
+
+module.exports = { allocateSeats, allseats, updateseat, deleteseat, pdfphone };
